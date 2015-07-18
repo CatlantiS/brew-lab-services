@@ -4,12 +4,13 @@ var router = express.Router();
 //Todo: make conn string more configurable.
 var connectionString = 'postgres://postgres:Brewlab1@blabdatadev01.cloudapp.net/BrewLabDB';
 var database = require('../core/database').Database(connectionString);
+var queries = require('../helpers/queries');
 
 //Todo: brush up on proper REST route conventions.
 router.get('/v1/users/:userId/recipes/', function(request, response) {
     var userId = request.params.userId;
 
-    var query = 'SELECT * FROM "Recipes"."Recipe" WHERE userId = \'' + userId + '\';';
+    var query = queries.selectRecipesByUserId(userId);
 
     database.find(query, function(data) {
         response.send(data);
@@ -19,7 +20,7 @@ router.get('/v1/users/:userId/recipes/', function(request, response) {
 router.get('/v1/users/:userId', function(request, response) {
     var userId = request.params.userId;
 
-    var query = 'SELECT id, name FROM "Application"."User" WHERE id = \'' + userId + '\';';
+    var query = queries.selectUserById(userId);
 
     database.findOne(query, function(data) {
         response.send(data);

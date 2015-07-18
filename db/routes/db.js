@@ -1,32 +1,28 @@
 var express = require('express');
 var router = express.Router();
 
-var pg = require('pg');
-//Would be nice to make this more configurable.
+//Todo: make conn string more configurable.
 var connectionString = 'postgres://postgres:Brewlab1@blabdatadev01.cloudapp.net/BrewLabDB';
+var database = require('../core/database').Database(connectionString);
 
-router.get('/v1/users/:username', function(request, response) {
-    var username = request.params.username;
+//Todo: brush up on proper REST route conventions.
+router.get('/v1/users/:userId/recipes/', function(request, response) {
+    var userId = request.params.userId;
 
-    pg.connect(connectionString, function(err, client, done) {
-        if (err) {
-            done(client);
+    var query = 'SELECT * FROM "Recipes"."Recipe" WHERE userId = \'' + userId + '\';';
 
-            response.send(err);
-        }
+    database.find(query, false, function(data) {
+        response.send(data);
+    });
+});
 
-        client.query('SELECT id, name FROM "Application"."User" WHERE name = \'' + username + '\';',
-            function(err, result) {
-                if(err) {
-                    done(client);
+router.get('/v1/users/:userId', function(request, response) {
+    var userId = request.params.userId;
 
-                    response.send(err);
-                }
+    var query = 'SELECT id, name FROM "Application"."User" WHERE id = \'' + userId + '\';';
 
-                response.send(result.rows[0]);
-
-                done(); //dizzity.
-            });
+    database.find(query, true, function(data) {
+        response.send(data);
     });
 });
 

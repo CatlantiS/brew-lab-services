@@ -8,11 +8,20 @@ function Database(connString) {
     connectionString = connString;
 
     return {
-        find: find
+        find: find,
+        findOne: findOne
     };
 }
 
-function find(query, single, callback) {
+function find(query, callback) {
+    _find(query, true, callback);
+}
+
+function findOne(query, callback) {
+    _find(query, true, callback);
+}
+
+function _find(query, single, callback) {
     pg.connect(connectionString, function(err, client, done) {
         if (err) {
             done(client);

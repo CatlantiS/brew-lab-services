@@ -5,24 +5,27 @@ var pg = require('pg');
 //Would be nice to make this more configurable.
 var connectionString = 'postgres://postgres:Brewlab1@blabdatadev01.cloudapp.net/BrewLabDB';
 
-//Todo: look into using client pooling: https://www.npmjs.com/package/pg#client-pooling
-
 router.get('/v1/users/:username', function(request, response) {
-    var username = request.params.username,
-        client = new pg.Client(connectionString);
+    var username = request.params.username;
 
-    client.connect(function(err) {
-        if (err)
+    pg.connect(connectionString, function(err, client, done) {
+        if (err) {
+            done(client);
+
             response.send(err);
+        }
 
         client.query('SELECT id, name FROM "Application"."User" WHERE name = \'' + username + '\';',
             function(err, result) {
-                if(err)
+                if(err) {
+                    done(client);
+
                     response.send(err);
+                }
 
                 response.send(result.rows[0]);
 
-                client.end();
+                done(); //dizzity.
             });
     });
 });

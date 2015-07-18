@@ -14,7 +14,7 @@ function Database(connString) {
 }
 
 function find(query, callback) {
-    _find(query, true, callback);
+    _find(query, false, callback);
 }
 
 function findOne(query, callback) {

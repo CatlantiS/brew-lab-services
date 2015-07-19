@@ -10,9 +10,9 @@ var queries = require('../helpers/queries');
 router.get('/v1/users/:userId/recipes/', function(request, response) {
     var userId = request.params.userId;
 
-    var query = queries.selectRecipesByUserId(userId);
+    var select = queries.selectRecipesByUserId(userId);
 
-    database.find(query, function(data) {
+    database.find(select, function(data) {
         response.send(data);
     });
 });
@@ -20,9 +20,9 @@ router.get('/v1/users/:userId/recipes/', function(request, response) {
 router.get('/v1/users/:userId', function(request, response) {
     var userId = request.params.userId;
 
-    var query = queries.selectUserById(userId);
+    var select = queries.selectUserById(userId);
 
-    database.findOne(query, function(data) {
+    database.findOne(select, function(data) {
         response.send(data);
     });
 });
@@ -31,13 +31,38 @@ router.post('/v1/recipes/', function(request, response) {
     var recipes = request.body;
 
     (Array.isArray(recipes) ? recipes : [recipes]).forEach(function(recipe) {
-        var query = queries.insertRecipe(recipe);
+        var insert = queries.insertRecipe(recipe);
 
-        database.insert(query, function(data) {
+        database.insert(insert, function(data) {
             response.send(data);
         });
     });
 
 });
+
+router.route('/v1/recipes/:recipeId')
+    .get(function(request, response) {
+        var recipeId = request.params.recipeId;
+
+        var select = queries.selectRecipeById(recipeId);
+
+        database.findOne(select, function(data) {
+            response.send(data);
+        });
+    })
+    .put(function(request, response) {
+        var recipeId = request.params.recipeId;
+        var recipe = request.body;
+
+        var transaction = [
+            queries.insertRecipe(recipe),
+            queries.versionRecipe(recipeId, new Date())
+        ];
+
+        database.transaction(transaction, function(data) {
+            //Should we check how big results are before sending?
+            response.send(data);
+        });
+    });
 
 module.exports = router;

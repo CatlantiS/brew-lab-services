@@ -27,4 +27,17 @@ router.get('/v1/users/:userId', function(request, response) {
     });
 });
 
+router.post('/v1/recipes/', function(request, response) {
+    var recipes = request.body;
+
+    (Array.isArray(recipes) ? recipes : [recipes]).forEach(function(recipe) {
+        var query = queries.insertRecipe(recipe);
+
+        database.insert(query, function(data) {
+            response.send(data);
+        });
+    });
+
+});
+
 module.exports = router;

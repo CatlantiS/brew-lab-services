@@ -18,17 +18,18 @@ function Database(connString) {
 }
 
 function insert(query, callback) {
-    execute(query, true, callback);
+    execute(query, callback);
 }
 
 function find(query, callback) {
-    execute(query, false, callback);
+    execute(query, callback);
 }
 
 function findOne(query, callback) {
-    execute(query, true, callback);
+    execute(query, callback, true);
 }
 
+//Todo: get rid of this pile of effluence.  Need something that gives caller more control over results for each individual query.
 function transaction(queries, callback) {
     if (!Array.isArray(queries))
         //Elegant as...
@@ -71,11 +72,13 @@ function transaction(queries, callback) {
     });
 }
 
-function execute(query, single, callback) {
+function execute(query, callback, single) {
     pg.connect(connectionString, function(err, client, done) {
         if (err) {
             done(client);
-            callback(err);
+
+            if (callback)
+                callback(err);
 
             return;
         }
@@ -83,13 +86,17 @@ function execute(query, single, callback) {
         client.query(query, function(err, result) {
             if(err) {
                 done(client);
-                callback(err);
+
+                if (callback)
+                    callback(err);
 
                 return;
             }
 
             done(); //dizzity.
-            callback(single ? result.rows[0] : result.rows);
+
+            if (callback)
+                callback(single ? result.rows[0] : result.rows);
         });
     });
 }

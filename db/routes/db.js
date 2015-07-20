@@ -3,7 +3,8 @@ var router = express.Router();
 
 //Todo: make conn string more configurable.
 var connectionString = 'postgres://postgres:Brewlab1@blabdatadev01.cloudapp.net/BrewLabDB';
-var database = require('../core/database').Database(connectionString);
+var Database = require('../core/database');
+var database = Database(connectionString);
 var queries = require('../helpers/queries');
 
 //Todo: brush up on proper REST route conventions.

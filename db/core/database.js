@@ -15,7 +15,7 @@ function Database(connString) {
 }
 
 function insert(query, callback) {
-    execute(query, callback);
+    execute(query, callback, true);
 }
 
 function find(query, callback) {

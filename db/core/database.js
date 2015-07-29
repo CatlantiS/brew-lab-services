@@ -10,7 +10,7 @@ function connect(callback) {
             done(client);
 
             if (callback)
-                callback(err);
+                callback(null, err);
 
             return;
         }
@@ -21,11 +21,11 @@ function connect(callback) {
 
 function execute(connection, query, callback, single) {
     connection.client.query(query, function(err, result) {
-        if(err) {
+        if (err) {
             connection.done(connection.client);
 
             if (callback)
-                callback(err);
+                callback(null, err);
 
             return;
         }
@@ -38,31 +38,32 @@ function execute(connection, query, callback, single) {
 }
 
 function Database(connection) {
-    this.connection = connection;
+    //Lazily doing this to mark as private rather than use closures.  Can change this.
+    this._connection = connection;
 }
 
 Database.prototype.insert = function(query, callback) {
-    execute(this.connection, query, callback);
+    execute(this._connection, query, callback);
 };
 
 Database.prototype.find = function(query, callback) {
-    execute(this.connection, query, callback);
+    execute(this._connection, query, callback);
 };
 
 Database.prototype.findOne = function(query, callback) {
-    execute(this.connection, query, callback, true);
+    execute(this._connection, query, callback, true);
 };
 
 Database.prototype.beginTransaction = function() {
-    execute(this.connection, 'BEGIN;');
+    execute(this._connection, 'BEGIN;');
 };
 
 Database.prototype.commit = function() {
-    execute(this.connection, 'COMMIT;');
+    execute(this._connection, 'COMMIT;');
 };
 
 Database.prototype.rollback = function() {
-    execute(this.connection, 'ROLLBACK;');
+    execute(this._connection, 'ROLLBACK;');
 };
 
 module.exports = function(connString) {

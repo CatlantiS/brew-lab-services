@@ -9,7 +9,7 @@ queries.selectUserById = function(userId) {
 };
 
 queries.selectRecipesByUserId = function(userId) {
-    return 'SELECT * FROM "Recipes"."Recipe" WHERE userId = ' + userId + ';';
+    return 'SELECT * FROM "Recipes"."Recipe" WHERE "userId" = ' + userId + ';';
 };
 
 queries.selectRecipeById = function(recipeId) {

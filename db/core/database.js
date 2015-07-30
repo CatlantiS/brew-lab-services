@@ -43,7 +43,7 @@ function Database(connection) {
 }
 
 Database.prototype.insert = function(query, callback) {
-    execute(this._connection, query, callback);
+    execute(this._connection, query, callback, true);
 };
 
 Database.prototype.find = function(query, callback) {

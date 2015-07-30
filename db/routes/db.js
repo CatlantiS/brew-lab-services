@@ -33,17 +33,14 @@ router.get('/v1/users/:userId', function(request, response) {
 });
 
 router.post('/v1/recipes/', function(request, response) {
-    var recipes = request.body;
+    var recipe = request.body;
 
     //Do we want to use a transaction in here?
     database.connect(function(db) {
-        (Array.isArray(recipes) ? recipes : [recipes]).forEach(function(recipe) {
-            var insert = queries.insertRecipe(recipe);
+        var insert = queries.insertRecipe(recipe);
 
-            db.insert(insert, function(data) {
-                //Multiple responses??
-                response.send(data);
-            });
+        db.insert(insert, function(data) {
+            response.send(data);
         });
     });
 });

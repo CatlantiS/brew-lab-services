@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 //Todo: make conn string more configurable.
-var connectionString = 'postgres://postgres:Brewlab1@blabdatadev01.cloudapp.net/BrewLabDB';
+var connectionString = 'postgres://postgres:samcool@localhost/brewlabdb';
 var Database = require('../core/database');
 var database = Database(connectionString);
 var queries = require('../helpers/queries');
@@ -25,7 +25,7 @@ router.get('/v1/users/:userId', function(request, response) {
 
     database.connect(function(db) {
         var select = queries.selectUserById(userId);
-
+       
         db.findOne(select, function(data) {
             response.send(data);
         });

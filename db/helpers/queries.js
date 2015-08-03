@@ -5,7 +5,7 @@
 var queries = {};
 
 queries.selectUserById = function(userId) {
-    return 'SELECT id, name FROM "Application"."User" WHERE id = ' + userId + ';';
+    return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
 };
 
 queries.selectRecipesByUserId = function(userId) {

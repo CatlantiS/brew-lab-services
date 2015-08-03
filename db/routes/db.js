@@ -20,13 +20,28 @@ router.get('/v1/users/:userId/recipes/', function(request, response) {
     });
 });
 
-router.get('/v1/users/:userId', function(request, response) {
+router.get('/v1/users/id/:userId', function(request, response) {
     var userId = request.params.userId;
 
     database.connect(function(db) {
         var select = queries.selectUserById(userId);
        
-        db.findOne(select, function(data) {
+        db.findOne(select, function(data, err) {
+            if (err) throw err;
+
+            response.send(data);
+        });
+    });
+});
+
+router.get('/v1/users/name/:userName', function(request, response) {
+var userName = request.params.userName;
+
+    database.connect(function(db) {
+        var select = queries.selectUserByUsername(userName);
+
+        db.findOne(select, function(data, err) {
+            if (err) throw err;
             response.send(data);
         });
     });

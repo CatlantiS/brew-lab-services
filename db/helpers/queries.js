@@ -8,6 +8,10 @@ queries.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
 };
 
+queries.selectUserByUsername = function(username) {
+	return 'SELECT id, username, firstname, lastname, password, email FROM users.users where username = \'' + username + '\';';
+}
+
 queries.selectRecipesByUserId = function(userId) {
     return 'SELECT * FROM "Recipes"."Recipe" WHERE "userId" = ' + userId + ';';
 };

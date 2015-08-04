@@ -20,6 +20,18 @@ router.get('/v1/users/:userId/recipes/', function(request, response) {
     });
 });
 
+router.get('/v1/users/all', function(request, response) {
+    database.connect(function(db) {
+        var select = "SELECT * from users.users";
+
+        db.find(select, function(data, err) {
+            if (err) throw err;
+
+            response.send(data);
+        });
+    });
+});
+
 router.get('/v1/users/id/:userId', function(request, response) {
     var userId = request.params.userId;
 

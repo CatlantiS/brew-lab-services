@@ -4,6 +4,13 @@
  * Module dependencies.
  */
 
+/* var orig = console.log;
+
+  console.log = function(msg) {
+    //console.prototype.log.call(msg.bgBlue.yellow);
+    orig(msg.bgBlue.yellow.bold);
+  }; */
+
 var app = require('../app');
 var debug = require('debug')('brew-lab-services:server');
 var http = require('http');

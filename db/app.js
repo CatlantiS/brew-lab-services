@@ -6,8 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var db = require('./routes/db');
 var colors = require('colors');
+var session = require('express-session');
 
 var app = express();
+
+var oauth2 = require('./oauth/config.js')();
+app.set('oauth2', oauth2);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,6 +25,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// oauth20 use statements
+app.use(session({ secret: 'oauth20-provider-test-server', resave: false, saveUninitialized: false }));
+app.use(oauth2.inject());
+
 //Todo: configure this to limit origins.
 //Enable CORS
 app.use(function(req, res, next) {
@@ -30,6 +38,12 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.get('/secure', oauth2.middleware.bearer, function(req, res) {
+  if (!req.oauth2.accessToken) return res.status(403).send('Forbidden');
+  if (!req.oauth2.accessToken.userId) return res.status(403).send('Forbidden');
+  res.send('Hi! Dear user ' + req.oauth2.accessToken.userId + '!');
+});
+
 app.use('/api', db);
 
 // catch 404 and forward to error handler
@@ -37,6 +51,11 @@ app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
+});
+
+app.post('/authorize', function(req, res, next) {
+  // TODO:  implement checking
+  req.send(503);
 });
 
 // error handlers
@@ -62,5 +81,13 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
+function isAuthorized(req, res, next) {
+  if (req.session.authorized) next();
+  else {
+    console.log('sorry not authorized brah');
+    rea.send(401);
+  }
+};
 
 module.exports = app;

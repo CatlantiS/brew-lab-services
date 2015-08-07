@@ -4,13 +4,13 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var db = require('./routes/db');
 var colors = require('colors');
 var session = require('express-session');
 
 var app = express();
 
 var oauth2 = require('./oauth/config.js')();
+var db = require('./routes/db');
 app.set('oauth2', oauth2);
 
 // view engine setup
@@ -32,11 +32,21 @@ app.use(oauth2.inject());
 //Todo: configure this to limit origins.
 //Enable CORS
 app.use(function(req, res, next) {
+  console.log('injecting headers');
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-  next();
+  if (req.method.toLowerCase() === "options") {
+    res.status(200);
+    res.end();
+  }
+  else
+  {
+    next();
+  }
+
 });
+
 
 app.get('/secure', oauth2.middleware.bearer, function(req, res) {
   if (!req.oauth2.accessToken) return res.status(403).send('Forbidden');
@@ -46,16 +56,13 @@ app.get('/secure', oauth2.middleware.bearer, function(req, res) {
 
 app.use('/api', db);
 
+app.post('/authorize', oauth2.controller.token);
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
-});
-
-app.post('/authorize', function(req, res, next) {
-  // TODO:  implement checking
-  req.send(503);
 });
 
 // error handlers

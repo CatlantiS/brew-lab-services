@@ -29,6 +29,13 @@ CREATE TABLE users.users
 	email varchar(255)
 );
 
+CREATE TABLE users.clients
+(
+    id serial primary key,
+    name varchar(255),
+    secret varchar(255)
+)
+
 --
 -- Name: Application; Type: SCHEMA; Schema: -; Owner: postgres
 --

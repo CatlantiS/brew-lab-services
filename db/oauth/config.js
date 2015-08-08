@@ -13,8 +13,8 @@
 		var model = require('./model/');
 
 		 //client methods
-        /*obj.model.client.fetchById = model.client.fetchById;
-        obj.model.client.getRedirectUri = model.client.getRedirectUri;
+        obj.model.client.fetchById = model.client.fetchById;
+        /*obj.model.client.getRedirectUri = model.client.getRedirectUri;
         obj.model.client.getId = model.client.getId;
         obj.model.client.checkSecret = model.client.checkSecret;*/
 

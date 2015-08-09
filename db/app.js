@@ -10,7 +10,7 @@ var session = require('express-session');
 var app = express();
 
 var oauth2 = require('./oauth/config.js')();
-var db = require('./routes/db');
+var db = require('./routes/db')(oauth2);
 app.set('oauth2', oauth2);
 
 // view engine setup

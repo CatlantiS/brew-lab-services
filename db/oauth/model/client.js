@@ -2,7 +2,7 @@ var db = require('./db.js');
 
 module.exports.fetchById = function(clientId, cb) {
     db.conn.connect(function(conn) {
-        conn.findOne('select * from users.clientszzz where id = ' + clientId, function(data, err) {
+        conn.findOne('select * from users.clients where id = ' + clientId, function(data, err) {
             if (err) {
                 cb(err, null);
             }
@@ -17,3 +17,11 @@ module.exports.fetchById = function(clientId, cb) {
         });
     });
 };
+
+module.exports.getId = function(client) {
+    return client.id;
+}
+
+module.exports.checkSecret = function(client, secret, cb) {
+    return cb(null, client.secret == secret);
+}

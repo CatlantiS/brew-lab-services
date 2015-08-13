@@ -9,8 +9,8 @@ queries.selectUserById = function(userId) {
 };
 
 queries.createUser = function(user) {
-    return 'INSERT INTO users.users(username,firstname,lastname,password) VALUES (\'' + user.userName + '\',\''
-     + user.firstName + '\',\'' + user.lastName + '\',\'' + user.password + '\')';
+    return 'INSERT INTO users.users(username,firstname,lastname,email,password) VALUES (\'' + user.userName + '\',\''
+     + user.firstName + '\',\'' + user.lastName + '\',\'' + user.email + '\',\'' + user.password + '\')';
 }
 
 queries.selectUserByUsername = function(username) {

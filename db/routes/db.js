@@ -34,6 +34,17 @@ module.exports = function(oauth2) {
         });
      });
 
+    router.post('/v1/users/create', oauth2.middleware.bearer, function(request, response) {
+        var user = request.body;
+        database.connect(function(db) {
+            var sql = queries.createUser(user);
+            db.insert(sql, function(data, err) {
+                if (err) throw err;
+                response.status(200).send('ok');
+            });
+        });
+    });
+
     router.get('/v1/users/id/:userId', function (request, response) {
         var userId = request.params.userId;
 

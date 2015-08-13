@@ -8,6 +8,11 @@ queries.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
 };
 
+queries.createUser = function(user) {
+    return 'INSERT INTO users.users(username,firstname,lastname,password) VALUES (\'' + user.userName + '\',\''
+     + user.firstName + '\',\'' + user.lastName + '\',\'' + user.password + '\')';
+}
+
 queries.selectUserByUsername = function(username) {
 	return 'SELECT id, username, firstname, lastname, password, email FROM users.users where username = \'' + username + '\';';
 }

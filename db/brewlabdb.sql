@@ -9,6 +9,8 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
+CREATE EXTENSION pgcrypto;
+
 CREATE SCHEMA users;
 
 SET search_path = users, pg_catalog;
@@ -29,12 +31,7 @@ CREATE TABLE users.users
 	email varchar(255)
 );
 
-CREATE TABLE users.clients
-(
-    id serial primary key,
-    name varchar(255),
-    secret varchar(255)
-)
+
 
 --
 -- Name: Application; Type: SCHEMA; Schema: -; Owner: postgres

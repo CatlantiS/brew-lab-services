@@ -1,4 +1,5 @@
 var db = require('./db.js');
+var crypto = require('crypto');
 
 module.exports.getId = function(user) {
 	return user.id;
@@ -48,7 +49,11 @@ module.exports.fetchByUsername = function(username, cb) {
 
 module.exports.checkPassword = function(user, password, cb) {
 	if (user) {
-		(user.password == password) ? cb(null, true) : cb(null, false);
+		var hash = crypto.createHash('SHA1');
+		hash.update(password, 'UTF8');
+		var hashedPassword = hash.digest('HEX');
+		console.log('hashedPassword = ' + hashedPassword);
+		(user.password == hashedPassword) ? cb(null, true) : cb(null, false);
 	}
 	else {
 		cb(null, false);

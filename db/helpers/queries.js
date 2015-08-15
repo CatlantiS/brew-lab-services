@@ -10,7 +10,7 @@ queries.selectUserById = function(userId) {
 
 queries.createUser = function(user) {
     return 'INSERT INTO users.users(username,firstname,lastname,email,password) VALUES (\'' + user.userName + '\',\''
-     + user.firstName + '\',\'' + user.lastName + '\',\'' + user.email + '\',\'' + user.password + '\')';
+     + user.firstName + '\',\'' + user.lastName + '\',\'' + user.email + '\',' + 'encode(digest(\'' + user.password + '\', \'SHA1\'),\'hex\')' + ')';
 }
 
 queries.selectUserByUsername = function(username) {

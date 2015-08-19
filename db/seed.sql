@@ -2,6 +2,7 @@ do $$
 DECLARE row_count INTEGER DEFAULT 0;
 BEGIN
 
+<<<<<<< HEAD
 IF NOT EXISTS  (SELECT 1 FROM users.users WHERE username='brewuser') THEN 
 	INSERT INTO users.users(username, firstname, lastname, password, email)
 	VALUES ('brewuser', 'brew','user',encode(digest('meow', 'SHA1'),'hex'),'brew@brew.com');

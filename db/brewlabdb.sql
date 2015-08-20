@@ -60,6 +60,29 @@ ALTER SCHEMA "Definitions" OWNER TO postgres;
 -- Name: Recipes; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
+CREATE SCHEMA logs;
+
+ALTER SCHEMA logs OWNER TO postgres;
+
+SET search_path = logs, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+CREATE TABLE logs
+(
+    id SERIAL PRIMARY KEY,
+    utcdate TIMESTAMP,
+    level VARCHAR(50),
+    url   VARCHAR(255),
+    userId int,
+    message TEXT
+);
+
+ALTER TABLE logs
+    ADD CONSTRAINT userId_id_fkey FOREIGN KEY(userId) REFERENCES users.users(id);
+
 CREATE SCHEMA "Recipes";
 
 

@@ -106,6 +106,12 @@ module.exports = function(oauth2) {
                 var select = queries.selectRecipeById(recipeId);
 
                 db.findOne(select, function(data, err) {
+                    if (err) {
+                        errorHandler(err, response);
+
+                        return;
+                    }
+
                     response.send(data);
                 });
             });

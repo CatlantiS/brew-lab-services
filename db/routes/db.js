@@ -1,22 +1,19 @@
 module.exports = function(oauth2) {
-
     var express = require('express');
     var router = express.Router();
 
-//Todo: make conn string more configurable.
-    var connectionString = 'postgres://postgres:samcool@localhost/brewlabdb';
+    var dbConfig = require('../configuration/dbConfig.js');
     var Database = require('../core/database');
-    var database = Database(connectionString);
+    var database = Database(dbConfig.connectionString);
     var queries = require('../helpers/queries');
 
-//Todo: brush up on proper REST route conventions.
-    router.get('/v1/users/:userId/recipes/', function (request, response) {
-        var userId = request.params.userId;
+    router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
+        database.connect(function(db) {
+            var select = "SELECT * from users.users";
 
-        database.connect(function (db) {
-            var select = queries.selectRecipesByUserId(userId);
+            db.find(select, function(data, err) {
+                if (err) throw err;
 
-            db.find(select, function (data) {
                 response.send(data);
             });
         });
@@ -49,14 +46,18 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/users/id/:userId', function (request, response) {
+    router.get('/v1/users/:userId', function(request, response) {
         var userId = request.params.userId;
 
-        database.connect(function (db) {
+        database.connect(function(db) {
             var select = queries.selectUserById(userId);
 
-            db.findOne(select, function (data, err) {
-                if (err) throw err;
+            db.findOne(select, function(data, err) {
+                if (err) {
+                    errorHandler(err, response);
+
+                    return;
+                }
 
                 response.send(data);
             });
@@ -76,35 +77,75 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.post('/v1/recipes/', function (request, response) {
+    router.get('/v1/users/:userId/recipes/', function(request, response) {
+        var userId = request.params.userId;
+
+        database.connect(function(db) {
+            var select = queries.selectRecipesByUserId(userId);
+
+            db.find(select, function(data, err) {
+                if (err) {
+                    errorHandler(err, response);
+
+                    return;
+                }
+
+                response.send(data);
+            });
+        });
+    });
+
+    router.post('/v1/recipes/', function(request, response) {
         var recipe = request.body;
 
         //Do we want to use a transaction in here?
-        database.connect(function (db) {
+        database.connect(function(db) {
             var insert = queries.insertRecipe(recipe);
 
-            db.insert(insert, function (data) {
+            db.insert(insert, function(data, err) {
+                if (err) {
+                    errorHandler(err, response);
+
+                    return;
+                }
+
                 response.send(data);
             });
         });
     });
 
     router.route('/v1/recipes/:recipeId')
-        .get(function (request, response) {
+        .get(function(request, response) {
             var recipeId = request.params.recipeId;
 
-            database.connect(function (db) {
+            database.connect(function(db) {
                 var select = queries.selectRecipeById(recipeId);
 
-                db.findOne(select, function (data) {
+                db.findOne(select, function(data, err) {
+                    if (err) {
+                        errorHandler(err, response);
+
+                        return;
+                    }
+
                     response.send(data);
                 });
             });
         })
-        .put(function (request, response) {
+        .put(function(request, response) {
             var recipeId = request.params.recipeId;
             var recipe = request.body;
         });
+
+    //Just ripped this off of app.js.
+    //Do we want to add logging in here?
+    function errorHandler(error, response) {
+        response.status(500)
+            .render('error', {
+                message: error.message,
+                error: error
+            });
+    }
 
     return router;
 };

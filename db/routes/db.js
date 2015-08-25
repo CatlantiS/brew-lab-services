@@ -7,6 +7,11 @@ module.exports = function(oauth2) {
     var database = Database(dbConfig.connectionString);
     var queries = require('../helpers/queries');
 
+    router.post('/v1/logs/insert', function(request, response) {
+       console.dir(request.body);
+        response.status(401).send('not implemented');
+    });
+
     router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
         database.connect(function(db) {
             var select = "SELECT * from users.users";

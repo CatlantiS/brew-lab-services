@@ -2,7 +2,7 @@ do $$
 DECLARE row_count INTEGER DEFAULT 0;
 BEGIN
 
-<<<<<<< HEAD
+row_count := 0;
 IF NOT EXISTS  (SELECT 1 FROM users.users WHERE username='brewuser') THEN 
 	INSERT INTO users.users(username, firstname, lastname, password, email)
 	VALUES ('brewuser', 'brew','user',encode(digest('meow', 'SHA1'),'hex'),'brew@brew.com');
@@ -17,6 +17,22 @@ IF NOT EXISTS (SELECT 1 FROM users.clients where id=1) THEN
 	GET DIAGNOSTICS row_count = ROW_COUNT;
 END IF;
 RAISE NOTICE 'Inserted % rows into users.clients.',row_count;
+
+row_count := 0;
+IF NOT EXISTS (SELECT 1 FROM "Definitions"."Units" where name='Gallons') THEN
+	INSERT INTO "Definitions"."Units"(name)
+	VALUES('Gallons');
+	GET DIAGNOSTICS row_count = ROW_COUNT;
+END IF;
+RAISE NOTICE 'Inserted % rows into Definitions.Units.',row_count;
+
+row_count := 0;
+IF NOT EXISTS (SELECT 1 FROM "Definitions"."Units" where name='Liters') THEN
+	INSERT INTO "Definitions"."Units"(name)
+	VALUES('Liters');
+	GET DIAGNOSTICS row_count = ROW_COUNT;
+END IF;
+RAISE NOTICE 'Inserted % rows into Definitions.Units.',row_count;
 
 END;
 $$

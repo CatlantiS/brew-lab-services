@@ -106,6 +106,8 @@ module.exports = function(oauth2) {
         //Do we want to use a transaction in here?
         database.connect(function(db) {
             var insert = queries.insertRecipe(recipe);
+            console.log('insert query=');
+            console.log(insert);
 
             db.insert(insert, function(data, err) {
                 if (err) {

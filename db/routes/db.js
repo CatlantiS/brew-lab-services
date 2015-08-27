@@ -100,6 +100,24 @@ module.exports = function(oauth2) {
         });
     });
 
+    router.get('/v1/recipes/currentUser', oauth2.middleware.bearer, function(request,response) {
+            var userId = request.oauth2.accessToken.userId;
+
+            database.connect(function(db) {
+            var select = queries.selectRecipesByUserId(userId);
+
+            db.find(select, function(data, err) {
+                if (err) {
+                    errorHandler(err, response);
+
+                    return;
+                }
+
+                response.send(data);
+            });
+        });
+    });
+
     router.post('/v1/recipes/', oauth2.middleware.bearer, function(request, response) {
         var recipe = request.body;
         recipe.userId = request.oauth2.accessToken.userId;

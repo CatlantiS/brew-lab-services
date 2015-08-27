@@ -100,14 +100,13 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.post('/v1/recipes/', function(request, response) {
+    router.post('/v1/recipes/', oauth2.middleware.bearer, function(request, response) {
         var recipe = request.body;
-
+        recipe.userId = request.oauth2.accessToken.userId;
+        
         //Do we want to use a transaction in here?
         database.connect(function(db) {
             var insert = queries.insertRecipe(recipe);
-            console.log('insert query=');
-            console.log(insert);
 
             db.insert(insert, function(data, err) {
                 if (err) {

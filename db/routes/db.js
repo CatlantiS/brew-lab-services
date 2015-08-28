@@ -7,9 +7,18 @@ module.exports = function(oauth2) {
     var database = Database(dbConfig.connectionString);
     var queries = require('../helpers/queries');
 
-    router.post('/v1/logs/insert', function(request, response) {
-       console.dir(request.body);
-        response.status(401).send('not implemented');
+    router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
+        var sql = queries.createLog(request.body.timestamp, request.body.level, request.body.url, request.oauth2.accessToken.userId, request.body.message);
+        database.connect(function(db) {
+            db.insert(sql, function(data, err) {
+                if (err) {
+                    response.status(500).send('ERROR' + err);
+                    throw err;
+                }
+                else
+                    response.status(200).send('OK');
+            });
+;        });
     });
 
     router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
@@ -23,18 +32,6 @@ module.exports = function(oauth2) {
             });
         });
     });
-
-    router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
-     database.connect(function(db) {
-        var select = "SELECT * from users.users";
-
-        db.find(select, function(data, err) {
-            if (err) throw err;
-
-            response.send(data);
-            });
-        });
-     });
 
     router.get('/v1/users/current', oauth2.middleware.bearer, function(request, response) {
         response.status(200).send({userId: request.oauth2.accessToken.userId});

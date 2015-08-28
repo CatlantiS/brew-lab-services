@@ -41,8 +41,8 @@ queries.versionRecipe = function(recipeId, versionDate) {
 // select CAST(NOW() at time zone 'UTC' as timestamp);
 
 queries.createLog = function(timestamp,level,url,userId,message) {
-    return 'INSERT INTO logs.logs(timestamp,level,url,userid,message) SELECT TIMESTAMP WITHOUT TIME ZONE \'epoch\' + ' + timestamp + ' * INTERVAL \'1 millisecond\''
-    + ', ' + level + ',' + url + ',' + userId + ',' + message;
+    return 'INSERT INTO logs.logs(utcdate,level,url,userid,message) SELECT TIMESTAMP WITHOUT TIME ZONE \'epoch\' + ' + timestamp + ' * INTERVAL \'1 millisecond\''
+    + ',\'' + level + '\',\'' + url + '\',' + userId + ',\'' + message + '\'';
 };
 
 module.exports = queries;

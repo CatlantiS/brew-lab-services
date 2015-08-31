@@ -7,8 +7,11 @@ module.exports = function(oauth2) {
     var database = Database(dbConfig.connectionString);
     var queries = require('../helpers/queries');
 
+    //commenting this out until we can figure out how to add headers to ajaxappender
     router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
-        var sql = queries.createLog(request.body.timestamp, request.body.level, request.body.url, request.oauth2.accessToken.userId, request.body.message);
+        var payload = JSON.parse(request.body.data)[0];
+        var sql = queries.createLog(payload.timestamp, payload.level, payload.url, request.oauth2.accessToken.userId, payload.message);
+
         database.connect(function(db) {
             db.insert(sql, function(data, err) {
                 if (err) {

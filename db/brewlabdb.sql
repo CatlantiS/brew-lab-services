@@ -60,6 +60,29 @@ ALTER SCHEMA "Definitions" OWNER TO postgres;
 -- Name: Recipes; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
+CREATE SCHEMA logs;
+
+ALTER SCHEMA logs OWNER TO postgres;
+
+SET search_path = logs, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+CREATE TABLE logs
+(
+    id SERIAL PRIMARY KEY,
+    utcdate TIMESTAMP,
+    level VARCHAR(50),
+    url   VARCHAR(255),
+    userId int,
+    message TEXT
+);
+
+ALTER TABLE logs
+    ADD CONSTRAINT userId_id_fkey FOREIGN KEY(userId) REFERENCES users.users(id);
+
 CREATE SCHEMA "Recipes";
 
 
@@ -86,37 +109,11 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: User; Type: TABLE; Schema: Application; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE "User" (
-    id integer NOT NULL,
-    name text NOT NULL
-);
-
-
-ALTER TABLE "User" OWNER TO postgres;
+-- Name: User; Type: TABLE; Schema: Application; Owner: 
 
 --
 -- Name: User_id_seq; Type: SEQUENCE; Schema: Application; Owner: postgres
 --
-
-CREATE SEQUENCE "User_id_seq"
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE "User_id_seq" OWNER TO postgres;
-
---
--- Name: User_id_seq; Type: SEQUENCE OWNED BY; Schema: Application; Owner: postgres
---
-
-ALTER SEQUENCE "User_id_seq" OWNED BY "User".id;
-
 
 SET search_path = "Definitions", pg_catalog;
 
@@ -275,7 +272,7 @@ ALTER TABLE ONLY "Recipe"
 --
 
 ALTER TABLE ONLY "Recipe"
-    ADD CONSTRAINT "recipe_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Application"."User"(id);
+    ADD CONSTRAINT "recipe_userId_fkey" FOREIGN KEY ("userId") REFERENCES users.users(id);
 
 
 --
@@ -291,7 +288,7 @@ ALTER TABLE ONLY "RecipeVersion"
 --
 
 ALTER TABLE ONLY "RecipeVersion"
-    ADD CONSTRAINT "recipeversion_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Application"."User"(id);
+    ADD CONSTRAINT "recipeversion_userId_fkey" FOREIGN KEY ("userId") REFERENCES users.users(id);
 
 
 --

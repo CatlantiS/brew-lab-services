@@ -39,4 +39,14 @@ queries.versionRecipe = function(recipeId, versionDate) {
     return 'UPDATE "Recipes"."Recipe" SET "versionId" = ' + id + ', "versionDate" = ' + versionDate + ' WHERE id = ' + recipeId + ';';
 };
 
+
+// NOTE:  use this to have postgres grab the current time(but this will be server time)
+// SELECT TIMESTAMP WITHOUT TIME ZONE 'epoch' + 1440037552357 * INTERVAL '1 millisecond';
+// select CAST(NOW() at time zone 'UTC' as timestamp);
+
+queries.createLog = function(timestamp,level,url,userId,message) {
+    return 'INSERT INTO logs.logs(utcdate,level,url,userid,message) SELECT TIMESTAMP WITHOUT TIME ZONE \'epoch\' + ' + timestamp + ' * INTERVAL \'1 millisecond\''
+    + ',\'' + level + '\',\'' + url + '\',' + userId + ',\'' + message + '\'';
+};
+
 module.exports = queries;

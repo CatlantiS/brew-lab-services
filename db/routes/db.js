@@ -7,6 +7,23 @@ module.exports = function(oauth2) {
     var database = Database(dbConfig.connectionString);
     var queries = require('../helpers/queries');
 
+    //commenting this out until we can figure out how to add headers to ajaxappender
+    router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
+        var payload = JSON.parse(request.body.data)[0];
+        var sql = queries.createLog(payload.timestamp, payload.level, payload.url, request.oauth2.accessToken.userId, payload.message);
+
+        database.connect(function(db) {
+            db.insert(sql, function(data, err) {
+                if (err) {
+                    response.status(500).send('ERROR' + err);
+                    throw err;
+                }
+                else
+                    response.status(200).send('OK');
+            });
+;        });
+    });
+
     router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
         database.connect(function(db) {
             var select = "SELECT * from users.users";
@@ -17,6 +34,10 @@ module.exports = function(oauth2) {
                 response.send(data);
             });
         });
+    });
+
+    router.get('/v1/users/current', oauth2.middleware.bearer, function(request, response) {
+        response.status(200).send({userId: request.oauth2.accessToken.userId});
     });
 
     router.post('/v1/users/create', oauth2.middleware.bearer, function(request, response) {
@@ -79,9 +100,28 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.post('/v1/recipes/', function(request, response) {
-        var recipe = request.body;
+    router.get('/v1/recipes/currentUser', oauth2.middleware.bearer, function(request,response) {
+            var userId = request.oauth2.accessToken.userId;
 
+            database.connect(function(db) {
+            var select = queries.selectRecipesByUserId(userId);
+
+            db.find(select, function(data, err) {
+                if (err) {
+                    errorHandler(err, response);
+
+                    return;
+                }
+
+                response.send(data);
+            });
+        });
+    });
+
+    router.post('/v1/recipes/', oauth2.middleware.bearer, function(request, response) {
+        var recipe = request.body;
+        recipe.userId = request.oauth2.accessToken.userId;
+        
         //Do we want to use a transaction in here?
         database.connect(function(db) {
             var insert = queries.insertRecipe(recipe);

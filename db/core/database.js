@@ -54,6 +54,14 @@ Database.prototype.findOne = function(query, callback) {
     execute(this._connection, query, callback, true);
 };
 
+Database.prototype.execute = function(query, callback) {
+    execute(this._connection, query, callback);
+};
+
+Database.prototype.executeOne = function(query, callback) {
+    execute(this._connection, query, callback, true);
+};
+
 Database.prototype.beginTransaction = function() {
     execute(this._connection, 'BEGIN;');
 };

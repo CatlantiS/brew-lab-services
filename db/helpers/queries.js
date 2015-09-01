@@ -31,6 +31,10 @@ queries.insertRecipe = function(recipe) {
         'RETURNING id;';
 };
 
+queries.deleteRecipe = function(recipeId) {
+    return 'DELETE FROM "Recipes"."Recipe" WHERE id = ' + recipeId + ';';
+};
+
 queries.versionRecipe = function(recipeId, versionDate) {
     return 'UPDATE "Recipes"."Recipe" SET "versionId" = ' + id + ', "versionDate" = ' + versionDate + ' WHERE id = ' + recipeId + ';';
 };

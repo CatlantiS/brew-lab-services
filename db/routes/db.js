@@ -98,6 +98,24 @@ module.exports = function(oauth2) {
         });
     });
 
+    router.delete('/v1/recipes/:recipeId', function(request, response) {
+        var recipeId = request.params.recipeId;
+
+        database.connect(function(db) {
+            var deleteSql = queries.deleteRecipe(recipeId);
+
+            db.execute(deleteSql, function(data, err) {
+                if (err) {
+                    errorHandler(err, response);
+
+                    return;
+                }
+
+                response.send();
+            });
+        });
+    });
+
     router.route('/v1/recipes/:recipeId')
         .get(function(request, response) {
             var recipeId = request.params.recipeId;

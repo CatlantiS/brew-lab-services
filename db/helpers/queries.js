@@ -49,4 +49,8 @@ queries.createLog = function(timestamp,level,url,userId,message) {
     + ',\'' + level + '\',\'' + url + '\',' + userId + ',\'' + message + '\'';
 };
 
+queries.getAllLogs = function() {
+    return 'SELECT * FROM logs.logs';
+};
+
 module.exports = queries;

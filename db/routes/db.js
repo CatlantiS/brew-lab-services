@@ -21,7 +21,17 @@ module.exports = function(oauth2) {
                 else
                     response.status(200).send('OK');
             });
-;        });
+         });
+    });
+
+    router.get('/v1/logs/all', function(request, response) {
+        database.connect(function(db) {
+            var sql = queries.getAllLogs();
+            db.find(sql, function(data, err) {
+                if (err) throw err;
+                response.status(200).send(data);
+            });
+        });
     });
 
     router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {

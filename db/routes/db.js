@@ -6,6 +6,7 @@ module.exports = function(oauth2) {
     var Database = require('../core/database');
     var database = Database(dbConfig.connectionString);
     var queries = require('../helpers/queries');
+    var bcrypt = require('bcrypt');
 
     //commenting this out until we can figure out how to add headers to ajaxappender
     router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
@@ -53,10 +54,15 @@ module.exports = function(oauth2) {
     router.post('/v1/users/create', oauth2.middleware.bearer, function(request, response) {
         var user = request.body;
         database.connect(function(db) {
-            var sql = queries.createUser(user);
-            db.insert(sql, function(data, err) {
-                if (err) throw err;
-                response.status(200).send('ok');
+            bcrypt.genSalt(10, function(err, salt) {
+                bcrypt.hash(user.password, salt, function(err, hash) {
+                    user.password = hash;
+                    var sql = queries.createUser(user);
+                    db.insert(sql, function(data, err) {
+                        if (err) throw err;
+                        response.status(200).send('ok');
+                    });
+                });
             });
         });
     });

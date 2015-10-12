@@ -1,5 +1,6 @@
 var db = require('./db.js');
 var crypto = require('crypto');
+var bcrypt = require('bcrypt');
 
 module.exports.getId = function(user) {
 	return user.id;
@@ -49,11 +50,9 @@ module.exports.fetchByUsername = function(username, cb) {
 
 module.exports.checkPassword = function(user, password, cb) {
 	if (user) {
-		var hash = crypto.createHash('SHA1');
-		hash.update(password, 'UTF8');
-		var hashedPassword = hash.digest('HEX');
-		console.log('hashedPassword = ' + hashedPassword);
-		(user.password == hashedPassword) ? cb(null, true) : cb(null, false);
+		bcrypt.compare(password, user.password, function(err, res) {
+			(res == true) ? cb(null, true) : cb(null, false);
+		});
 	}
 	else {
 		cb(null, false);

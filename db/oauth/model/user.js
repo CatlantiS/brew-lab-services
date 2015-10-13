@@ -8,11 +8,8 @@ module.exports.getId = function(user) {
 
 module.exports.fetchById = function(userId, cb) {
 	cb.conn.connect(function(conn) {
-		conn.findOne('select * from users.users where id = ' + userId, function(data, err) {
-			if (err) {
-				cb(err, null);
-			}
-			else if (data === undefined) {
+		conn.findOne('select * from users.users where id = ' + userId).then(function(data) {
+			if (data === undefined) {
 				return cb(null, null);
 			}
 			else {
@@ -25,17 +22,14 @@ module.exports.fetchById = function(userId, cb) {
 				};
 				return cb(null, user);
 			}
-		});
+		}, function(err) { cb(err, null); });
 	});
 };
 
 module.exports.fetchByUsername = function(username, cb) {
 	db.conn.connect(function(conn) {
-		conn.findOne('select * from users.users where username = \'' + username + '\'', function(data, err) {
-			if (err) {
-				cb(err, null);
-			}
-			else if (data === undefined) {
+		conn.findOne('select * from users.users where username = \'' + username + '\'').then(function(data) {
+			if (data === undefined) {
 				return cb(null, null);
 			}
 			else {
@@ -50,7 +44,7 @@ module.exports.fetchByUsername = function(username, cb) {
 				console.dir(user);
 				return cb(null, user);
 			}
-		});
+		}, function(err) { cb(err, null); });
 	});
 };
 

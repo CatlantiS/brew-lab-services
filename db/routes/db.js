@@ -14,24 +14,21 @@ module.exports = function(oauth2) {
         var sql = queries.createLog(payload.timestamp, payload.level, payload.url, request.oauth2.accessToken.userId, payload.message);
 
         database.connect(function(db) {
-            db.insert(sql, function(data, err) {
-                if (err) {
-                    response.status(500).send('ERROR' + err);
-                    throw err;
-                }
-                else
-                    response.status(200).send('OK');
+            db.insert(sql).then(function(data) {
+                response.status(200).send('OK');
             });
-         });
+        }, function(err) {
+            response.status(500).send('ERROR' + err);
+            throw err;
+        });
     });
 
     router.get('/v1/logs/all', function(request, response) {
         database.connect(function(db) {
             var sql = queries.getAllLogs();
-            db.find(sql, function(data, err) {
-                if (err) throw err;
+            db.find(sql).then(function(data) {
                 response.status(200).send(data);
-            });
+            }, function(err) { throw err; });
         });
     });
 
@@ -39,11 +36,9 @@ module.exports = function(oauth2) {
         database.connect(function(db) {
             var select = "SELECT * from users.users";
 
-            db.find(select, function(data, err) {
-                if (err) throw err;
-
+            db.find(select).then(function(data) {
                 response.send(data);
-            });
+            }, function(err) { throw err; });
         });
     });
 
@@ -58,10 +53,9 @@ module.exports = function(oauth2) {
                 bcrypt.hash(user.password, salt, function(err, hash) {
                     user.password = hash;
                     var sql = queries.createUser(user);
-                    db.insert(sql, function(data, err) {
-                        if (err) throw err;
+                    db.insert(sql).then(function(data) {
                         response.status(200).send('ok');
-                    });
+                    }, function(err) { throw err; });
                 });
             });
         });
@@ -73,15 +67,9 @@ module.exports = function(oauth2) {
         database.connect(function(db) {
             var select = queries.selectUserById(userId);
 
-            db.findOne(select, function(data, err) {
-                if (err) {
-                    errorHandler(err, response);
-
-                    return;
-                }
-
+            db.findOne(select).then(function(data) {
                 response.send(data);
-            });
+            }, function(err) { errorHandler(err, response); });
         });
     });
 
@@ -91,10 +79,9 @@ module.exports = function(oauth2) {
         database.connect(function (db) {
             var select = queries.selectUserByUsername(userName);
 
-            db.findOne(select, function (data, err) {
-                if (err) throw err;
+            db.findOne(select).then(function(data) {
                 response.send(data);
-            });
+            }, function(err) { throw err; });
         });
     });
 
@@ -104,15 +91,9 @@ module.exports = function(oauth2) {
         database.connect(function(db) {
             var select = queries.selectRecipesByUserId(userId);
 
-            db.find(select, function(data, err) {
-                if (err) {
-                    errorHandler(err, response);
-
-                    return;
-                }
-
+            db.find(select).then(function(data) {
                 response.send(data);
-            });
+            }, function(err) { errorHandler(err, response); });
         });
     });
 
@@ -122,15 +103,9 @@ module.exports = function(oauth2) {
             database.connect(function(db) {
             var select = queries.selectRecipesByUserId(userId);
 
-            db.find(select, function(data, err) {
-                if (err) {
-                    errorHandler(err, response);
-
-                    return;
-                }
-
+            db.find(select).then(function(data) {
                 response.send(data);
-            });
+            }, function(err) { errorHandler(err, response); });
         });
     });
 
@@ -140,16 +115,18 @@ module.exports = function(oauth2) {
         
         //Do we want to use a transaction in here?
         database.connect(function(db) {
+            db.beginTransaction();
+
             var insert = queries.insertRecipe(recipe);
 
-            db.insert(insert, function(data, err) {
-                if (err) {
-                    errorHandler(err, response);
-
-                    return;
-                }
+            db.insert(insert).then(function(data) {
+                db.commit();
 
                 response.send(data);
+            }, function(err) {
+                db.rollback();
+
+                errorHandler(err, response);
             });
         });
     });
@@ -160,15 +137,9 @@ module.exports = function(oauth2) {
         database.connect(function(db) {
             var deleteSql = queries.deleteRecipe(recipeId);
 
-            db.execute(deleteSql, function(data, err) {
-                if (err) {
-                    errorHandler(err, response);
-
-                    return;
-                }
-
+            db.execute(deleteSql).then(function(data) {
                 response.send();
-            });
+            }, function(err) { errorHandler(err, response); });
         });
     });
 
@@ -179,15 +150,9 @@ module.exports = function(oauth2) {
             database.connect(function(db) {
                 var select = queries.selectRecipeById(recipeId);
 
-                db.findOne(select, function(data, err) {
-                    if (err) {
-                        errorHandler(err, response);
-
-                        return;
-                    }
-
+                db.findOne(select).then(function(data) {
                     response.send(data);
-                });
+                }, function(err) { errorHandler(err, response); });
             });
         })
         .put(function(request, response) {

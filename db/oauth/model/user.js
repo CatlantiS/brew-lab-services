@@ -12,6 +12,9 @@ module.exports.fetchById = function(userId, cb) {
 			if (err) {
 				cb(err, null);
 			}
+			else if (data === undefined) {
+				return cb(null, null);
+			}
 			else {
 				var user = {
 					id: data.id,
@@ -31,6 +34,9 @@ module.exports.fetchByUsername = function(username, cb) {
 		conn.findOne('select * from users.users where username = \'' + username + '\'', function(data, err) {
 			if (err) {
 				cb(err, null);
+			}
+			else if (data === undefined) {
+				return cb(null, null);
 			}
 			else {
 				var user = {

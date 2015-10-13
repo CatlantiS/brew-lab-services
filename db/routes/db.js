@@ -3,8 +3,8 @@ module.exports = function(oauth2) {
     var router = express.Router();
 
     var dbConfig = require('../configuration/dbConfig.js');
-    var Database = require('../core/database');
-    var database = Database(dbConfig.connectionString);
+    var pgConnect = require('../core/pgConnect');
+    var database = pgConnect(dbConfig.connectionString);
     var queries = require('../helpers/queries');
     var bcrypt = require('bcrypt');
 

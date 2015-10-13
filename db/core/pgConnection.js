@@ -2,9 +2,9 @@
 
 var pg = require('pg');
 
-function PgConnect(connectionString) { this.connectionString = connectionString; return this; }
+function PgConnection(connectionString) { this.connectionString = connectionString; return this; }
 
-PgConnect.prototype.connect = function(callback) {
+PgConnection.prototype.connect = function(callback) {
     pg.connect(this.connectionString, function(err, client, done) {
         if (err) {
             done(client);
@@ -72,5 +72,5 @@ Database.prototype.rollback = function() {
 };
 
 module.exports = function(connectionString) {
-    return new PgConnect(connectionString);
+    return new PgConnection(connectionString);
 };

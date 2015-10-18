@@ -43,7 +43,15 @@ module.exports = function(oauth2) {
     });
 
     router.get('/v1/users/current', oauth2.middleware.bearer, function(request, response) {
-        response.status(200).send({userId: request.oauth2.accessToken.userId});
+        var userId = request.oauth2.accessToken.userId;
+
+        database.connect(function(db) {
+            var select = queries.selectUserById(userId);
+
+            db.findOne(select).then(function(data) {
+                response.send(data);
+            }, function(err) { errorHandler(err, response); });
+        });
     });
 
     router.post('/v1/users/create', oauth2.middleware.bearer, function(request, response) {

@@ -97,11 +97,24 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/recipes/currentUser', oauth2.middleware.bearer, function(request,response) {
+    router.get('/v1/currentUser/recipes/', oauth2.middleware.bearer, function(request,response) {
             var userId = request.oauth2.accessToken.userId;
 
             database.connect(function(db) {
             var select = queries.selectRecipesByUserId(userId);
+
+            db.find(select).then(function(data) {
+                response.send(data);
+            }, function(err) { errorHandler(err, response); });
+        });
+    });
+
+    router.get('/v1/currentUser/recipes/:recipeId', oauth2.middleware.bearer, function(request,response) {
+        var recipeId = request.params.recipeId,
+            userId = request.oauth2.accessToken.userId;
+
+        database.connect(function(db) {
+            var select = queries.selectRecipeByUserIdAndRecipeId(userId, recipeId);
 
             db.find(select).then(function(data) {
                 response.send(data);
@@ -115,19 +128,11 @@ module.exports = function(oauth2) {
         
         //Do we want to use a transaction in here?
         database.connect(function(db) {
-            db.beginTransaction();
-
             var insert = queries.insertRecipe(recipe);
 
             db.insert(insert).then(function(data) {
-                db.commit();
-
                 response.send(data);
-            }, function(err) {
-                db.rollback();
-
-                errorHandler(err, response);
-            });
+            }, function(err) { errorHandler(err, response); });
         });
     });
 

@@ -25,6 +25,11 @@ queries.selectRecipeById = function(recipeId) {
     return 'SELECT * FROM "Recipes"."Recipe" WHERE id = ' + recipeId + ';';
 };
 
+//Alright, this is getting out of control.
+queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
+    return 'SELECT * FROM Recipes.Recipe WHERE userId = ' + userId + ' AND id = ' + recipeId + ';';
+};
+
 queries.insertRecipe = function(recipe) {
     return 'INSERT INTO "Recipes"."Recipe" ("userId", name, volume, units, "yeastType") VALUES (' +
         recipe.userId + ', \'' + recipe.name + '\', ' + recipe.volume + ', \'' + recipe.units + '\', \'' + recipe.yeastType + '\') ' +

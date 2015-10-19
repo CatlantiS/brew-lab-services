@@ -168,9 +168,21 @@ module.exports = function(oauth2) {
                 }, function(err) { errorHandler(err, response); });
             });
         })
+        //Todo: change this to use versioning.
         .put(function(request, response) {
-            var recipeId = request.params.recipeId;
-            var recipe = request.body;
+            var recipeId = request.params.recipeId,
+                recipe = request.body;
+
+            if (recipeId != recipe.id)
+                errorHandler('Recipe ID in query param does not match recipe ID in body.', response);
+
+            database.connect(function(db) {
+                var update = queries.updateRecipe(recipe);
+
+                db.executeOne(update).then(function() {
+                    response.status(200).send('ok');
+                }, function(err) { errorHandler(err, response); });
+            });
         });
 
     //Just ripped this off of app.js.

@@ -36,6 +36,11 @@ queries.insertRecipe = function(recipe) {
         'RETURNING id;';
 };
 
+//Most likely get rid of this once we have versioning in place.
+queries.updateRecipe = function(recipe) {
+    return 'UPDATE "Recipes"."Recipe" SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\', "yeastType" = \'' + recipe.yeastType + '\' WHERE id = ' + recipe.id + ';';
+};
+
 queries.deleteRecipe = function(recipeId) {
     return 'DELETE FROM "Recipes"."Recipe" WHERE id = ' + recipeId + ';';
 };

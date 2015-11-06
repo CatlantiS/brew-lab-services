@@ -18,35 +18,35 @@ queries.selectUserByUsername = function(username) {
 }
 
 queries.selectRecipesByUserId = function(userId) {
-    return 'SELECT * FROM "Recipes"."Recipe" WHERE "userId" = ' + userId + ';';
+    return 'SELECT * FROM recipes.recipe WHERE "userId" = ' + userId + ';';
 };
 
 queries.selectRecipeById = function(recipeId) {
-    return 'SELECT * FROM "Recipes"."Recipe" WHERE id = ' + recipeId + ';';
+    return 'SELECT * FROM recipes.recipe WHERE id = ' + recipeId + ';';
 };
 
 //Alright, this is getting out of control.
 queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
-    return 'SELECT * FROM Recipes.Recipe WHERE userId = ' + userId + ' AND id = ' + recipeId + ';';
+    return 'SELECT * FROM recipes.recipe WHERE userId = ' + userId + ' AND id = ' + recipeId + ';';
 };
 
 queries.insertRecipe = function(recipe) {
-    return 'INSERT INTO "Recipes"."Recipe" ("userId", name, volume, units, "yeastType") VALUES (' +
+    return 'INSERT INTO recipes.recipe ("userId", name, volume, units, "yeastType") VALUES (' +
         recipe.userId + ', \'' + recipe.name + '\', ' + recipe.volume + ', \'' + recipe.units + '\', \'' + recipe.yeastType + '\') ' +
         'RETURNING id;';
 };
 
 //Most likely get rid of this once we have versioning in place.
 queries.updateRecipe = function(recipe) {
-    return 'UPDATE "Recipes"."Recipe" SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\', "yeastType" = \'' + recipe.yeastType + '\' WHERE id = ' + recipe.id + ';';
+    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\', "yeastType" = \'' + recipe.yeastType + '\' WHERE id = ' + recipe.id + ';';
 };
 
 queries.deleteRecipe = function(recipeId) {
-    return 'DELETE FROM "Recipes"."Recipe" WHERE id = ' + recipeId + ';';
+    return 'DELETE FROM recipes.recipe WHERE id = ' + recipeId + ';';
 };
 
 queries.versionRecipe = function(recipeId, versionDate) {
-    return 'UPDATE "Recipes"."Recipe" SET "versionId" = ' + id + ', "versionDate" = ' + versionDate + ' WHERE id = ' + recipeId + ';';
+    return 'UPDATE recipes.recipe SET "versionId" = ' + id + ', "versionDate" = ' + versionDate + ' WHERE id = ' + recipeId + ';';
 };
 
 

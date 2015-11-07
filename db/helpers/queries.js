@@ -3,7 +3,7 @@
 'use strict';
 
 var queries = {},
-    recipeJoin = 'SELECT * FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r.id = i."recipeId"';
+    recipeJoin = 'SELECT r."recipeId", r."userId", r.name, r.volume, r.units, i."recipeIngredientId", i.ingredient, i.type, i.volume AS "ingredientVolume", i.units AS "ingredientUnits" FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r."recipeId" = i."recipeId"';
 
 queries.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
@@ -23,7 +23,7 @@ queries.selectRecipesByUserId = function(userId) {
 };
 
 queries.selectRecipeById = function(recipeId) {
-    return recipeJoin + ' WHERE r.id = ' + recipeId + ';';
+    return recipeJoin + ' WHERE r."recipeId" = ' + recipeId + ';';
 };
 
 queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
@@ -32,22 +32,22 @@ queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
 
 //Alright, this is getting out of control.
 queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
-    return recipeJoin + ' WHERE r."userId" = ' + userId + ' AND r.id = ' + recipeId + ';';
+    return recipeJoin + ' WHERE r."userId" = ' + userId + ' AND r."recipeId" = ' + recipeId + ';';
 };
 
 queries.insertRecipe = function(recipe) {
     return 'INSERT INTO recipes.recipe ("userId", name, volume, units) VALUES (' +
-        recipe.userId + ', \'' + recipe.name + '\', ' + recipe.volume + ', \'' + recipe.units + '\', \'' + recipe.yeastType + '\') ' +
-        'RETURNING id;';
+        recipe.userId + ', \'' + recipe.name + '\', ' + recipe.volume + ', \'' + recipe.units + '\') ' +
+        'RETURNING "recipeId";';
 };
 
 //Most likely get rid of this once we have versioning in place.
 queries.updateRecipe = function(recipe) {
-    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\' WHERE id = ' + recipe.id + ';';
+    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\' WHERE "recipeId" = ' + recipe.recipeId + ';';
 };
 
 queries.deleteRecipe = function(recipeId) {
-    return 'DELETE FROM recipes.recipe WHERE id = ' + recipeId + ';';
+    return 'DELETE FROM recipes.recipe WHERE "recipeId" = ' + recipeId + ';';
 };
 
 queries.selectDefinitions = function(definition) {

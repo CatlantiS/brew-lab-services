@@ -8,6 +8,8 @@ module.exports = function(oauth2) {
     var queries = require('../helpers/queries');
     var bcrypt = require('bcrypt');
 
+    var allPromises = require('node-promise').all;
+
     //commenting this out until we can figure out how to add headers to ajaxappender
     router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
         var payload = JSON.parse(request.body.data)[0];
@@ -106,9 +108,9 @@ module.exports = function(oauth2) {
     });
 
     router.get('/v1/currentUser/recipes/', oauth2.middleware.bearer, function(request,response) {
-            var userId = request.oauth2.accessToken.userId;
+        var userId = request.oauth2.accessToken.userId;
 
-            database.connect(function(db) {
+        database.connect(function(db) {
             var select = queries.selectRecipesByUserId(userId);
 
             db.find(select).then(function(data) {
@@ -173,8 +175,11 @@ module.exports = function(oauth2) {
             var recipeId = request.params.recipeId,
                 recipe = request.body;
 
-            if (recipeId != recipe.id)
+            if (recipeId != recipe.recipeId) {
                 errorHandler('Recipe ID in query param does not match recipe ID in body.', response);
+
+                return;
+            }
 
             database.connect(function(db) {
                 var update = queries.updateRecipe(recipe);
@@ -193,6 +198,24 @@ module.exports = function(oauth2) {
 
             db.find(select).then(function(data) {
                 response.send(data);
+            }, function(err) { errorHandler(err, response); });
+        });
+    });
+
+    //Returning all definitions in a single object to minimize calls.
+    router.get('/v1/brewMaster/definitions/', function(request, response) {
+        database.connect(function(db) {
+            var selectIngredients = queries.selectDefinitions('ingredient'),
+                selectUnits = queries.selectDefinitions('units'),
+                ingredientPromise = db.find(selectIngredients).then(function(data) { return { definition: 'ingredient', data: data }; }),
+                unitsPromise = db.find(selectUnits).then(function(data) { return { definition: 'units', data: data }; });
+
+            allPromises(ingredientPromise, unitsPromise).then(function(data) {
+                var merged = {};
+
+                for (var i = 0; i < data.length; i++) { merged[data[i].definition] = data[i].data; }
+
+                response.send(merged);
             }, function(err) { errorHandler(err, response); });
         });
     });

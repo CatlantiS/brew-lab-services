@@ -7,7 +7,7 @@ function format() {
     var args = arguments;
 
     return args[0].replace(/{(\d+)}/g, function(match, number) {
-        var index = parseInt(number) + 1; //To account for first arg being input string.
+        var index = +number + 1; //To account for first arg being input string.
 
         return typeof args[index] != 'undefined' ? args[index] : match;
     });

@@ -27,7 +27,7 @@ queries.selectRecipeById = function(recipeId) {
 };
 
 queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
-    return 'SELECT * FROM recipes.recipe_ingredient WHERE recipeId = ' + recipeId + ';';
+    return 'SELECT * FROM recipes.recipe_ingredient WHERE "recipeId" = ' + recipeId + ';';
 };
 
 //Alright, this is getting out of control.

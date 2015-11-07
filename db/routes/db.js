@@ -185,6 +185,18 @@ module.exports = function(oauth2) {
             });
         });
 
+    router.get('/v1/definitions/:definition', function(request, response) {
+        var definition = request.params.definition;
+
+        database.connect(function(db) {
+            var select = queries.selectDefinitions(definition);
+
+            db.find(select).then(function(data) {
+                response.send(data);
+            }, function(err) { errorHandler(err, response); });
+        });
+    });
+
     //Just ripped this off of app.js.
     //Do we want to add logging in here?
     function errorHandler(error, response) {

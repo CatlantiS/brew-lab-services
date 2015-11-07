@@ -2,7 +2,8 @@
 
 'use strict';
 
-var queries = {};
+var queries = {},
+    recipeJoin = 'SELECT * FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r.id = i."recipeId"';
 
 queries.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
@@ -18,37 +19,40 @@ queries.selectUserByUsername = function(username) {
 }
 
 queries.selectRecipesByUserId = function(userId) {
-    return 'SELECT * FROM recipes.recipe WHERE "userId" = ' + userId + ';';
+    return recipeJoin + ' WHERE r."userId" = ' + userId + ';';
 };
 
 queries.selectRecipeById = function(recipeId) {
-    return 'SELECT * FROM recipes.recipe WHERE id = ' + recipeId + ';';
+    return recipeJoin + ' WHERE r.id = ' + recipeId + ';';
+};
+
+queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
+    return 'SELECT * FROM recipes.recipe_ingredient WHERE recipeId = ' + recipeId + ';';
 };
 
 //Alright, this is getting out of control.
 queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
-    return 'SELECT * FROM recipes.recipe WHERE userId = ' + userId + ' AND id = ' + recipeId + ';';
+    return recipeJoin + ' WHERE r."userId" = ' + userId + ' AND r.id = ' + recipeId + ';';
 };
 
 queries.insertRecipe = function(recipe) {
-    return 'INSERT INTO recipes.recipe ("userId", name, volume, units, "yeastType") VALUES (' +
+    return 'INSERT INTO recipes.recipe ("userId", name, volume, units) VALUES (' +
         recipe.userId + ', \'' + recipe.name + '\', ' + recipe.volume + ', \'' + recipe.units + '\', \'' + recipe.yeastType + '\') ' +
         'RETURNING id;';
 };
 
 //Most likely get rid of this once we have versioning in place.
 queries.updateRecipe = function(recipe) {
-    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\', "yeastType" = \'' + recipe.yeastType + '\' WHERE id = ' + recipe.id + ';';
+    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\' WHERE id = ' + recipe.id + ';';
 };
 
 queries.deleteRecipe = function(recipeId) {
     return 'DELETE FROM recipes.recipe WHERE id = ' + recipeId + ';';
 };
 
-queries.versionRecipe = function(recipeId, versionDate) {
-    return 'UPDATE recipes.recipe SET "versionId" = ' + id + ', "versionDate" = ' + versionDate + ' WHERE id = ' + recipeId + ';';
+queries.selectDefinitions = function(definition) {
+    return 'SELECT * FROM definitions.' + definition + ';';
 };
-
 
 // NOTE:  use this to have postgres grab the current time(but this will be server time)
 // SELECT TIMESTAMP WITHOUT TIME ZONE 'epoch' + 1440037552357 * INTERVAL '1 millisecond';

@@ -1,14 +1,17 @@
 module.exports = function(oauth2) {
+    //Web
     var express = require('express');
     var router = express.Router();
 
+    //DB
     var dbConfig = require('../configuration/dbConfig.js');
     var pgConnection = require('../core/pgConnection');
     var database = pgConnection(dbConfig.connectionString);
     var queries = require('../helpers/queries');
+
     var bcrypt = require('bcrypt');
 
-    var allPromises = require('node-promise').all;
+    var all = require('node-promise').all;
 
     //commenting this out until we can figure out how to add headers to ajaxappender
     router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
@@ -205,20 +208,36 @@ module.exports = function(oauth2) {
     //Returning all definitions in a single object to minimize calls.
     router.get('/v1/brewMaster/definitions/', function(request, response) {
         database.connect(function(db) {
-            var selectIngredients = queries.selectDefinitions('ingredient'),
-                selectUnits = queries.selectDefinitions('units'),
-                ingredientPromise = db.find(selectIngredients).then(function(data) { return { definition: 'ingredient', data: data }; }),
-                unitsPromise = db.find(selectUnits).then(function(data) { return { definition: 'units', data: data }; });
+            var ingredient = db.find(queries.selectDefinitions('ingredient'))
+                    .then(function(data) { return { name: 'ingredient', data: data }; }),
+                units = db.find(queries.selectDefinitions('units'))
+                    .then(function(data) { return { name: 'units', data: data }; });
 
-            allPromises(ingredientPromise, unitsPromise).then(function(data) {
+            all(ingredient, units).then(function(data) {
                 var merged = {};
 
-                for (var i = 0; i < data.length; i++) { merged[data[i].definition] = data[i].data; }
+                for (var i = 0; i < data.length; i++) {
+                    var definition = data[i],
+                        entries = merged[definition.name] = {};
+
+                    for (var j = 0; j < definition.data.length; j++) {
+                        var entry = definition.data[j];
+
+                        //Shouldn't ever have a null or empty type, but just in case...
+                        if (entry.type != null && entry.type !== '') {
+                            var type = entry.type.toLowerCase();
+
+                            entries[type] = entries[type] || [];
+                            entries[type].push(entry);
+                        }
+                    }
+                }
 
                 response.send(merged);
             }, function(err) { errorHandler(err, response); });
         });
     });
+
 
     //Just ripped this off of app.js.
     //Do we want to add logging in here?

@@ -217,18 +217,18 @@ module.exports = function(oauth2) {
                 var merged = {};
 
                 for (var i = 0; i < data.length; i++) {
-                    var definition = data[i],
-                        entries = merged[definition.name] = {};
+                    var definitionType = data[i],
+                        definitions = merged[definitionType.name] = {};
 
-                    for (var j = 0; j < definition.data.length; j++) {
-                        var entry = definition.data[j];
+                    for (var j = 0; j < definitionType.data.length; j++) {
+                        var definition = definitionType.data[j];
 
                         //Shouldn't ever have a null or empty type, but just in case...
-                        if (entry.type != null && entry.type !== '') {
-                            var type = entry.type.toLowerCase();
+                        if (definition.type != null && definition.type !== '') {
+                            var type = definition.type.toLowerCase();
 
-                            entries[type] = entries[type] || [];
-                            entries[type].push(entry);
+                            definitions[type] = definitions[type] || [];
+                            definitions[type].push(definition);
                         }
                     }
                 }
@@ -237,7 +237,6 @@ module.exports = function(oauth2) {
             }, function(err) { errorHandler(err, response); });
         });
     });
-
 
     //Just ripped this off of app.js.
     //Do we want to add logging in here?

@@ -13,6 +13,8 @@ module.exports = function(oauth2) {
 
     var all = require('node-promise').all;
 
+    //Todo: tighten all these up with oauth2.middleware.bearer once we're done with initial dev.
+
     //commenting this out until we can figure out how to add headers to ajaxappender
     router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
         var payload = JSON.parse(request.body.data)[0];

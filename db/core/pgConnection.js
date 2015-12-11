@@ -3,15 +3,14 @@
 var pg = require('pg');
 var defer = require('node-promise').defer;
 
-function PgConnection(connectionString) { this.connectionString = connectionString; return this; }
+function PgConnection(connectionString) { this.connectionString = connectionString; }
 
 PgConnection.prototype.connect = function(callback) {
     pg.connect(this.connectionString, function(err, client, done) {
         if (err) {
             done(client);
 
-            if (callback)
-                callback(null, err);
+            if (callback) callback(null, err);
 
             return;
         }
@@ -40,7 +39,7 @@ function execute(connection, query, single) {
     return deferred.promise;
 }
 
-function Database(connection) { this.connection = connection; return this; }
+function Database(connection) { this.connection = connection; }
 
 Database.prototype.insert = function(query) {
     return execute(this.connection, query, true);

@@ -30,7 +30,7 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/logs/all', function(request, response) {
+    router.get('/v1/logs/all', oauth2.middleware.bearer, function(request, response) {
         database.connect(function(db) {
             var sql = queries.getAllLogs();
             db.find(sql).then(function(data) {
@@ -100,7 +100,7 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/users/:userId/recipes/', function(request, response) {
+    router.get('/v1/users/:userId/recipes/', oauth2.middleware.bearer, function(request, response) {
         var userId = request.params.userId;
 
         database.connect(function(db) {
@@ -151,7 +151,7 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.delete('/v1/recipes/:recipeId', function(request, response) {
+    router.delete('/v1/recipes/:recipeId', oauth2.middleware.bearer, function(request, response) {
         var recipeId = request.params.recipeId;
 
         database.connect(function(db) {

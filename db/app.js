@@ -11,6 +11,7 @@ var app = express();
 
 var oauth2 = require('./oauth/config.js')();
 var db = require('./routes/db')(oauth2);
+var auth = require('./routes/auth')(oauth2);
 app.set('oauth2', oauth2);
 
 // view engine setup
@@ -48,16 +49,8 @@ app.use(function(req, res, next) {
 
 });
 
-
-app.get('/secure', oauth2.middleware.bearer, function(req, res) {
-  if (!req.oauth2.accessToken) return res.status(403).send('Forbidden');
-  if (!req.oauth2.accessToken.userId) return res.status(403).send('Forbidden');
-  res.send('Hi! Dear user ' + req.oauth2.accessToken.userId + '!');
-});
-
+app.use('/auth', auth);
 app.use('/api', db);
-
-app.post('/authorize', oauth2.controller.token);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -89,13 +82,5 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-function isAuthorized(req, res, next) {
-  if (req.session.authorized) next();
-  else {
-    console.log('sorry not authorized brah');
-    rea.send(401);
-  }
-};
 
 module.exports = app;

@@ -39,6 +39,26 @@ module.exports = function(oauth2) {
         });
     });
 
+    //Todo: add oauth bearer
+    router.get('/v1/users/roles/', function(request, response) {
+        database.connect(function(db) {
+            var select = "SELECT * FROM users.role";
+
+            db.find(select).then(function(data) {
+                var types = {};
+
+                for (var i = 0; i < data.length; i++) {
+                    var role = data[i];
+
+                    (types[role.type] = types[role.type] || []).push(role);
+                }
+
+                response.send(types);
+            }, function(err) { errorHandler(err, response); });
+        });
+    });
+
+
     router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
         database.connect(function(db) {
             var select = "SELECT * from users.users";

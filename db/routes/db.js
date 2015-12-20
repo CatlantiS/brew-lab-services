@@ -58,7 +58,6 @@ module.exports = function(oauth2) {
         });
     });
 
-
     router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
         database.connect(function(db) {
             var select = "SELECT * from users.users";

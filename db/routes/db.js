@@ -40,9 +40,10 @@ module.exports = function(oauth2) {
     });
 
     //Todo: add oauth bearer
+    //Some pretty redundant data in here, can reduce the payload.
     router.get('/v1/users/roles/', function(request, response) {
         database.connect(function(db) {
-            var select = "SELECT * FROM users.role";
+            var select = "SELECT * FROM users.role r, users.role_type t WHERE r.type = t.type";
 
             db.find(select).then(function(data) {
                 var types = {};
@@ -50,7 +51,11 @@ module.exports = function(oauth2) {
                 for (var i = 0; i < data.length; i++) {
                     var role = data[i];
 
-                    (types[role.type] = types[role.type] || []).push(role);
+                    (types[role.type] = types[role.type] || {
+                            type: role.type,
+                            isAdmin: role.isAdmin,
+                            roles: []
+                        }).roles.push(role);
                 }
 
                 response.send(types);

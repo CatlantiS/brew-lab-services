@@ -41,6 +41,14 @@ queries.insertRecipe = function(recipe) {
         'RETURNING "recipeId";';
 };
 
+queries.insertRecipeIngredient = function(recipeIngredient, recipeId) {
+    return 'INSERT INTO recipes.recipe_ingredient ("recipeId", ingredient, type, volume, units) VALUES (' +
+        recipeId + ', \'' + recipeIngredient.ingredient + '\', \'' + recipeIngredient.type + '\', ' +
+        valueOrDbNull(recipeIngredient.volume, false) + ', ' + valueOrDbNull(recipeIngredient.units, true) + ') ' +
+        'RETURNING "recipeIngredientId";';
+
+}
+
 //Most likely get rid of this once we have versioning in place.
 queries.updateRecipe = function(recipe) {
     return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\' WHERE "recipeId" = ' + recipe.recipeId + ';';
@@ -49,6 +57,10 @@ queries.updateRecipe = function(recipe) {
 queries.deleteRecipe = function(recipeId) {
     return 'DELETE FROM recipes.recipe WHERE "recipeId" = ' + recipeId + ';';
 };
+
+queries.deleteRecipeIngredients = function(recipeId) {
+    return 'DELETE FROM recipes.recipe_ingredient WHERE "recipeId" = ' + recipeId + ';';
+}
 
 queries.selectDefinitions = function(definition) {
     return 'SELECT * FROM definitions.' + definition + ';';
@@ -66,5 +78,10 @@ queries.createLog = function(timestamp,level,url,userId,message) {
 queries.getAllLogs = function() {
     return 'SELECT * FROM logs.logs';
 };
+
+function valueOrDbNull(value, isString) {
+    return value == null ? 'null' :
+        isString ? '\'' + value + '\'' : value;
+}
 
 module.exports = queries;

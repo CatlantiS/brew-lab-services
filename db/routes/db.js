@@ -164,27 +164,90 @@ module.exports = function(oauth2) {
     router.post('/v1/recipes/', oauth2.middleware.bearer, function(request, response) {
         var recipe = request.body;
         recipe.userId = request.oauth2.accessToken.userId;
-        
-        //Do we want to use a transaction in here?
-        database.connect(function(db) {
-            var insert = queries.insertRecipe(recipe);
 
-            db.insert(insert).then(function(data) {
-                response.send(data);
-            }, function(err) { errorHandler(err, response); });
-        });
+        var recipeIngredients = [];
+
+        if (recipe.yeast && recipe.yeast.length && recipe.yeast.length > 0)
+            for (var i = 0; i < recipe.yeast.length; i++) {
+                var yeast = recipe.yeast[i];
+
+                recipeIngredients.push({
+                    ingredient: yeast.name,
+                    type: 'Yeast', volume:
+                    yeast.volume, units:
+                    yeast.units
+                });
+            }
+
+        //The nesting in pretty awful.
+        try {
+            database.connect(function(db) {
+                db.beginTransaction().then(function() {
+                    try {
+                        var insertRecipe = queries.insertRecipe(recipe);
+
+                        db.insert(insertRecipe).then(function (recipeData) {
+                            var ingredientInserts = [];
+
+                            for (var j = 0; j < recipeIngredients.length; j++) {
+                                var recipeIngredient = recipeIngredients[j],
+                                    insertRecipeIngredient = queries.insertRecipeIngredient(recipeIngredient, recipeData.recipeId);
+
+                                ingredientInserts.push(db.insert(insertRecipeIngredient));
+                            }
+
+                            all(ingredientInserts).then(function () {
+                                db.commit().then(function () {
+                                    //SUCCESS maybe.  Who knows.
+                                    //Can expand this to send back ids for ingredients, but that's probably not necessary.
+                                    response.send(recipeData);
+                                }, function (err) { throw (err); })
+                            }, function (err) { throw (err); });
+                        }, function (err) { throw (err); });
+                    }
+                    catch (exception) {
+                        db.rollback();
+
+                        throw (exception);
+                    }
+                });
+            });
+        }
+        catch (exception) {
+            errorHandler(exception, response);
+        }
     });
 
     router.delete('/v1/recipes/:recipeId', oauth2.middleware.bearer, function(request, response) {
         var recipeId = request.params.recipeId;
 
-        database.connect(function(db) {
-            var deleteSql = queries.deleteRecipe(recipeId);
+        try {
+            database.connect(function(db) {
+                db.beginTransaction().then(function() {
+                    try {
+                        var deleteRecipeIngredients = queries.deleteRecipeIngredients(recipeId);
 
-            db.execute(deleteSql).then(function(data) {
-                response.send();
-            }, function(err) { errorHandler(err, response); });
-        });
+                        db.execute(deleteRecipeIngredients).then(function() {
+                            var deleteRecipe = queries.deleteRecipe(recipeId);
+
+                            db.execute(deleteRecipe).then(function(data) {
+                                db.commit().then(function() {
+                                    response.send();
+                                }, function (err) { throw (err); });
+                            }, function (err) { throw (err); });
+                        }, function (err) { throw (err); });
+                    }
+                    catch (exception) {
+                        db.rollback();
+
+                        throw (exception);
+                    }
+                });
+            });
+        }
+        catch (exception) {
+            errorHandler(exception, response);
+        }
     });
 
     router.route('/v1/recipes/:recipeId')

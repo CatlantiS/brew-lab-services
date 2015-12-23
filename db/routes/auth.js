@@ -2,7 +2,11 @@ module.exports = function(oauth2) {
     var express = require('express');
     var router = express.Router();
 
-    router.post('/v1/authorize', oauth2.controller.token);
+    router.post('/v1/authenticate', oauth2.controller.token);
+
+    router.get('/v1/signOut', function(request, response) {
+
+    });
 
     router.get('/v1/secure', oauth2.middleware.bearer, function (req, res) {
         if (!req.oauth2.accessToken) return res.status(403).send('Forbidden');

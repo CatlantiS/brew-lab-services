@@ -165,20 +165,6 @@ module.exports = function(oauth2) {
         var recipe = request.body;
         recipe.userId = request.oauth2.accessToken.userId;
 
-        var recipeIngredients = [];
-
-        if (recipe.yeast && recipe.yeast.length && recipe.yeast.length > 0)
-            for (var i = 0; i < recipe.yeast.length; i++) {
-                var yeast = recipe.yeast[i];
-
-                recipeIngredients.push({
-                    ingredient: yeast.name,
-                    type: 'Yeast', volume:
-                    yeast.volume, units:
-                    yeast.units
-                });
-            }
-
         //The nesting in pretty awful.
         try {
             database.connect(function(db) {
@@ -186,23 +172,33 @@ module.exports = function(oauth2) {
                     try {
                         var insertRecipe = queries.insertRecipe(recipe);
 
-                        db.insert(insertRecipe).then(function (recipeData) {
-                            var ingredientInserts = [];
-
-                            for (var j = 0; j < recipeIngredients.length; j++) {
-                                var recipeIngredient = recipeIngredients[j],
-                                    insertRecipeIngredient = queries.insertRecipeIngredient(recipeIngredient, recipeData.recipeId);
-
-                                ingredientInserts.push(db.insert(insertRecipeIngredient));
-                            }
-
-                            all(ingredientInserts).then(function () {
+                        db.insert(insertRecipe).then(function(recipeData) {
+                            //No ingredients, so just insert recipe and boogey.
+                            if (!recipe.ingredients || recipe.ingredients.length == 0) {
                                 db.commit().then(function () {
                                     //SUCCESS maybe.  Who knows.
                                     //Can expand this to send back ids for ingredients, but that's probably not necessary.
                                     response.send(recipeData);
-                                }, function (err) { throw (err); })
-                            }, function (err) { throw (err); });
+                                }, function (err) { throw (err); });
+                            }
+                            else {
+                                var ingredientInserts = [];
+
+                                for (var i = 0; i < recipe.ingredients.length; i++) {
+                                    var ingredient = recipe.ingredients[i],
+                                        insertIngredient = queries.insertRecipeIngredient(ingredient, recipeData.recipeId);
+
+                                    ingredientInserts.push(db.insert(insertIngredient));
+                                }
+
+                                all(ingredientInserts).then(function() {
+                                    db.commit().then(function() {
+                                        //SUCCESS maybe.  Who knows.
+                                        //Can expand this to send back ids for ingredients, but that's probably not necessary.
+                                        response.send(recipeData);
+                                    }, function (err) { throw (err); });
+                                }, function (err) { throw (err); });
+                            }
                         }, function (err) { throw (err); });
                     }
                     catch (exception) {

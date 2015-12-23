@@ -3,7 +3,7 @@
 'use strict';
 
 var queries = {},
-    recipeJoin = 'SELECT r."recipeId", r."userId", r.name, r.volume, r.units, i."recipeIngredientId", i.ingredient, i.type, i.volume AS "ingredientVolume", i.units AS "ingredientUnits" FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r."recipeId" = i."recipeId"';
+    recipeJoin = 'SELECT r."recipeId", r."userId", r.name, r.volume, r.units, i."recipeIngredientId", i.name AS "name", i.type, i.volume AS "ingredientVolume", i.units AS "ingredientUnits" FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r."recipeId" = i."recipeId"';
 
 queries.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
@@ -42,8 +42,8 @@ queries.insertRecipe = function(recipe) {
 };
 
 queries.insertRecipeIngredient = function(recipeIngredient, recipeId) {
-    return 'INSERT INTO recipes.recipe_ingredient ("recipeId", ingredient, type, volume, units) VALUES (' +
-        recipeId + ', \'' + recipeIngredient.ingredient + '\', \'' + recipeIngredient.type + '\', ' +
+    return 'INSERT INTO recipes.recipe_ingredient ("recipeId", name, type, volume, units) VALUES (' +
+        recipeId + ', \'' + recipeIngredient.name + '\', \'' + recipeIngredient.type + '\', ' +
         valueOrDbNull(recipeIngredient.volume, false) + ', ' + valueOrDbNull(recipeIngredient.units, true) + ') ' +
         'RETURNING "recipeIngredientId";';
 

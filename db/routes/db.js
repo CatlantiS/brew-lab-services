@@ -199,7 +199,9 @@ module.exports = function(oauth2) {
                                     //Can expand this to send back ids for ingredients, but that's probably not necessary.
                                     response.send(recipeData);
                                 }, function (err) {
-                                    throw (err);
+                                    db.rollback();
+
+                                    errorHandler(err, response);
                                 });
                             }, function (err) {
                                 db.rollback();
@@ -226,24 +228,29 @@ module.exports = function(oauth2) {
         try {
             database.connect(function(db) {
                 db.beginTransaction().then(function() {
-                    try {
-                        var deleteRecipeIngredients = queries.deleteRecipeIngredients(recipeId);
+                    var deleteRecipeIngredients = queries.deleteRecipeIngredients(recipeId);
 
-                        db.execute(deleteRecipeIngredients).then(function() {
-                            var deleteRecipe = queries.deleteRecipe(recipeId);
+                    db.execute(deleteRecipeIngredients).then(function() {
+                        var deleteRecipe = queries.deleteRecipe(recipeId);
 
-                            db.execute(deleteRecipe).then(function(data) {
-                                db.commit().then(function() {
-                                    response.send();
-                                }, function(err) { throw (err); });
-                            }, function(err) { throw (err); });
-                        }, function(err) { throw (err); });
-                    }
-                    catch (exception) {
+                        db.execute(deleteRecipe).then(function(data) {
+                            db.commit().then(function() {
+                                response.send();
+                            }, function(err) {
+                                db.rollback();
+
+                                errorHandler(err, response);
+                            });
+                        }, function(err) {
+                            db.rollback();
+
+                            errorHandler(err, response);
+                        });
+                    }, function(err) {
                         db.rollback();
 
-                        throw (exception);
-                    }
+                        errorHandler(err, response);
+                    });
                 });
             });
         }

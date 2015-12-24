@@ -11,7 +11,9 @@ module.exports = function(oauth2) {
 
     var bcrypt = require('bcrypt');
 
-    var all = require('node-promise').all;
+    var promise = require('node-promise');
+    var all = promise.all;
+    var allOrNone = promise.allOrNone;
 
     //Todo: tighten all these up with oauth2.middleware.bearer once we're done with initial dev.
 
@@ -169,43 +171,47 @@ module.exports = function(oauth2) {
         try {
             database.connect(function(db) {
                 db.beginTransaction().then(function() {
-                    try {
-                        var insertRecipe = queries.insertRecipe(recipe);
+                    var insertRecipe = queries.insertRecipe(recipe);
 
-                        db.insert(insertRecipe).then(function(recipeData) {
-                            //No ingredients, so just insert recipe and boogey.
-                            if (!recipe.ingredients || recipe.ingredients.length == 0) {
+                    db.insert(insertRecipe).then(function(recipeData) {
+                        //No ingredients, so just insert recipe and boogey.
+                        if (!recipe.ingredients || recipe.ingredients.length == 0) {
+                            db.commit().then(function () {
+                                //SUCCESS maybe.  Who knows.
+                                //Can expand this to send back ids for ingredients, but that's probably not necessary.
+                                response.send(recipeData);
+                            }, function (err) { throw (err); });
+                        }
+                        else {
+                            var ingredientInserts = [];
+
+                            for (var i = 0; i < recipe.ingredients.length; i++) {
+                                var ingredient = recipe.ingredients[i],
+                                    insertIngredient = queries.insertRecipeIngredient(ingredient, recipeData.recipeId);
+
+                                ingredientInserts.push(db.insert(insertIngredient).then(function () { },
+                                    function (err) { throw (err); }));
+                            }
+
+                            allOrNone(ingredientInserts).then(function (data) {
                                 db.commit().then(function () {
                                     //SUCCESS maybe.  Who knows.
                                     //Can expand this to send back ids for ingredients, but that's probably not necessary.
                                     response.send(recipeData);
-                                }, function (err) { throw (err); });
-                            }
-                            else {
-                                var ingredientInserts = [];
+                                }, function (err) {
+                                    throw (err);
+                                });
+                            }, function (err) {
+                                db.rollback();
 
-                                for (var i = 0; i < recipe.ingredients.length; i++) {
-                                    var ingredient = recipe.ingredients[i],
-                                        insertIngredient = queries.insertRecipeIngredient(ingredient, recipeData.recipeId);
-
-                                    ingredientInserts.push(db.insert(insertIngredient));
-                                }
-
-                                all(ingredientInserts).then(function() {
-                                    db.commit().then(function() {
-                                        //SUCCESS maybe.  Who knows.
-                                        //Can expand this to send back ids for ingredients, but that's probably not necessary.
-                                        response.send(recipeData);
-                                    }, function (err) { throw (err); });
-                                }, function (err) { throw (err); });
-                            }
-                        }, function (err) { throw (err); });
-                    }
-                    catch (exception) {
+                                errorHandler(err, response);
+                            });
+                        }
+                    }, function(err) {
                         db.rollback();
 
-                        throw (exception);
-                    }
+                        errorHandler(err, response);
+                    });
                 });
             });
         }
@@ -229,9 +235,9 @@ module.exports = function(oauth2) {
                             db.execute(deleteRecipe).then(function(data) {
                                 db.commit().then(function() {
                                     response.send();
-                                }, function (err) { throw (err); });
-                            }, function (err) { throw (err); });
-                        }, function (err) { throw (err); });
+                                }, function(err) { throw (err); });
+                            }, function(err) { throw (err); });
+                        }, function(err) { throw (err); });
                     }
                     catch (exception) {
                         db.rollback();

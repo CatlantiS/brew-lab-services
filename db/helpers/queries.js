@@ -37,8 +37,8 @@ queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
 
 queries.insertRecipe = function(recipe) {
     return 'INSERT INTO recipes.recipe ("userId", name, volume, units) VALUES (' +
-        recipe.userId + ', \'' + recipe.name + '\', ' + recipe.volume + ', \'' + recipe.units + '\') ' +
-        'RETURNING "recipeId";';
+        recipe.userId + ', \'' + recipe.name + '\', ' + valueOrDbNull(recipe.volume, false) + ', ' +
+        valueOrDbNull(recipe.units, true) + ') RETURNING "recipeId";';
 };
 
 queries.insertRecipeIngredient = function(recipeIngredient, recipeId) {

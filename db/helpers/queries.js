@@ -3,7 +3,8 @@
 'use strict';
 
 var queries = {},
-    recipeJoin = 'SELECT r."recipeId", r."userId", r.name, r.volume, r.units, i."recipeIngredientId", i.name AS "name", i.type, i.volume AS "ingredientVolume", i.units AS "ingredientUnits" FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r."recipeId" = i."recipeId"';
+    selectRecipe = 'SELECT * FROM recipes.recipe',
+    selectRecipeAndIngredients = 'SELECT r."recipeId", r."userId", r.name, r.volume, r.units, i."recipeIngredientId", i.name AS "name", i.type, i.volume AS "ingredientVolume", i.units AS "ingredientUnits" FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r."recipeId" = i."recipeId"';
 
 queries.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
@@ -19,11 +20,11 @@ queries.selectUserByUsername = function(username) {
 };
 
 queries.selectRecipesByUserId = function(userId) {
-    return recipeJoin + ' WHERE r."userId" = ' + userId + ';';
+    return selectRecipe + ' WHERE "userId" = ' + userId + ';';
 };
 
 queries.selectRecipeById = function(recipeId) {
-    return recipeJoin + ' WHERE r."recipeId" = ' + recipeId + ';';
+    return selectRecipe + ' WHERE "recipeId" = ' + recipeId + ';';
 };
 
 queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
@@ -32,7 +33,7 @@ queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
 
 //Alright, this is getting out of control.
 queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
-    return recipeJoin + ' WHERE r."userId" = ' + userId + ' AND r."recipeId" = ' + recipeId + ';';
+    return selectRecipe + ' WHERE "userId" = ' + userId + ' AND "recipeId" = ' + recipeId + ';';
 };
 
 queries.insertRecipe = function(recipe) {

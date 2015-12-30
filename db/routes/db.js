@@ -259,6 +259,7 @@ module.exports = function(oauth2) {
         }
     });
 
+    //Todo: secure this.
     router.route('/v1/recipes/:recipeId')
         .get(function(request, response) {
             var recipeId = request.params.recipeId;
@@ -290,6 +291,18 @@ module.exports = function(oauth2) {
                 }, function(err) { errorHandler(err, response); });
             });
         });
+
+    router.get('/v1/recipeIngredients/:recipeId', oauth2.middleware.bearer, function(request,response) {
+        var recipeId = request.params.recipeId;
+
+        database.connect(function(db) {
+            var select = queries.selectRecipeIngredientsByRecipeId(recipeId);
+
+            db.find(select).then(function(data) {
+                response.send(data);
+            }, function(err) { errorHandler(err, response); });
+        });
+    });
 
     router.get('/v1/definitions/:definition', function(request, response) {
         var definition = request.params.definition;

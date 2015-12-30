@@ -12,11 +12,11 @@ queries.selectUserById = function(userId) {
 queries.createUser = function(user) {
     return 'INSERT INTO users.users(username,firstname,lastname,email,password) VALUES (\'' + user.userName + '\',\''
      + user.firstName + '\',\'' + user.lastName + '\',\'' + user.email + '\',\'' + user.password + '\')';
-}
+};
 
 queries.selectUserByUsername = function(username) {
 	return 'SELECT id, username, firstname, lastname, password, email FROM users.users where username = \'' + username + '\';';
-}
+};
 
 queries.selectRecipesByUserId = function(userId) {
     return recipeJoin + ' WHERE r."userId" = ' + userId + ';';
@@ -46,8 +46,7 @@ queries.insertRecipeIngredient = function(recipeIngredient, recipeId) {
         recipeId + ', \'' + recipeIngredient.name + '\', \'' + recipeIngredient.type + '\', ' +
         valueOrDbNull(recipeIngredient.volume, false) + ', ' + valueOrDbNull(recipeIngredient.units, true) + ') ' +
         'RETURNING "recipeIngredientId";';
-
-}
+};
 
 //Most likely get rid of this once we have versioning in place.
 queries.updateRecipe = function(recipe) {
@@ -60,7 +59,7 @@ queries.deleteRecipe = function(recipeId) {
 
 queries.deleteRecipeIngredients = function(recipeId) {
     return 'DELETE FROM recipes.recipe_ingredient WHERE "recipeId" = ' + recipeId + ';';
-}
+};
 
 queries.selectDefinitions = function(definition) {
     return 'SELECT * FROM definitions.' + definition + ';';

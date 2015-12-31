@@ -1,8 +1,13 @@
 # PgConnection
 
-A wrapper for the [pg](https://github.com/brianc/node-postgres) library that uses promises and handles transactions.
+A wrapper for the [pg](https://github.com/brianc/node-postgres) library that supports transactions and uses promises.
 
-## Install
-PgConnection is on [npm](https://www.npmjs.com/package/pg-connection).  Install it with the following command:
+## Basic usage
 
-    npm install pg-connection
+    pgConnection.connect(function(db) {
+        var select = "SELECT * FROM myTable";
+
+        db.find(select).then(function(data) {
+            response.send(data);
+        }, function(err) { throw err; );
+    });

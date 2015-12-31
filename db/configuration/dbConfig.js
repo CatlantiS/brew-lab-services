@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports = {
-    connectionString: 'postgres://postgres:XXXXXXXXXXXXXXXXXXXXXXX/brewlabdb'
+    connectionString: 'postgres://postgres:samcool@shaycraft.cloudapp.net/brewlabdb'
 };

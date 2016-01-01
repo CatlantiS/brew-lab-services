@@ -42,16 +42,23 @@ queries.insertRecipe = function(recipe) {
         valueOrDbNull(recipe.units, true) + ') RETURNING "recipeId";';
 };
 
+queries.updateRecipe = function(recipe) {
+    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' +
+        valueOrDbNull(recipe.volume, false) + ', units = ' + valueOrDbNull(recipe.units, true) +
+        ' WHERE "recipeId" = ' + recipe.recipeId + ';';
+};
+
 queries.insertRecipeIngredient = function(recipeIngredient, recipeId) {
     return 'INSERT INTO recipes.recipe_ingredient ("recipeId", name, type, volume, units) VALUES (' +
-        recipeId + ', \'' + recipeIngredient.name + '\', \'' + recipeIngredient.type + '\', ' +
+        (recipeId != null ? recipeId : recipeIngredient.recipeId) + ', \'' + recipeIngredient.name + '\', \'' + recipeIngredient.type + '\', ' +
         valueOrDbNull(recipeIngredient.volume, false) + ', ' + valueOrDbNull(recipeIngredient.units, true) + ') ' +
         'RETURNING "recipeIngredientId";';
 };
 
-//Most likely get rid of this once we have versioning in place.
-queries.updateRecipe = function(recipe) {
-    return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' + recipe.volume + ', units = \'' + recipe.units + '\' WHERE "recipeId" = ' + recipe.recipeId + ';';
+queries.updateRecipeIngredient = function(recipeIngredient) {
+    return 'UPDATE recipes.recipe_ingredient SET "recipeId" = ' + recipeIngredient.recipeId + ', name = \'' +
+        recipeIngredient.name + '\', volume = ' + valueOrDbNull(recipeIngredient.volume, false) + ', units = '
+        + valueOrDbNull(recipeIngredient.units, true) + ' WHERE "recipeIngredientId" = ' + recipeIngredient.recipeIngredientId + ';';
 };
 
 queries.deleteRecipe = function(recipeId) {

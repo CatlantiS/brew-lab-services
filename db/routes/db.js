@@ -272,11 +272,13 @@ module.exports = function(oauth2) {
                 }, function(err) { errorHandler(err, response); });
             });
         })
-        //Todo: change this to use versioning.
+        //Todo: add api for versioning recipes.
+        //A lot of redundancy between this and post api.  Might be able to refactor.
         .put(function(request, response) {
             var recipeId = request.params.recipeId,
                 recipe = request.body;
 
+            //Is this necessary?
             if (recipeId != recipe.recipeId) {
                 errorHandler('Recipe ID in query param does not match recipe ID in body.', response);
 
@@ -284,11 +286,52 @@ module.exports = function(oauth2) {
             }
 
             database.connect(function(db) {
-                var update = queries.updateRecipe(recipe);
+                var updateRecipe = queries.updateRecipe(recipe);
 
-                db.executeOne(update).then(function() {
-                    response.status(200).send('ok');
-                }, function(err) { errorHandler(err, response); });
+                db.beginTransaction().then(function() {
+                    db.executeOne(updateRecipe).then(function() {
+                        //We just blow away existing ingredients and re-add rather than try to determine which have changed and which haven't.
+                        var deleteIngredients = queries.deleteRecipeIngredients(recipeId);
+
+                        db.executeOne(deleteIngredients).then(function() {
+                            var ingredientInserts = [];
+
+                            for (var i = 0; i < recipe.ingredients.length; i++) {
+                                var ingredient = recipe.ingredients[i],
+                                    insertIngredient = queries.insertRecipeIngredient(ingredient, recipeId);
+
+                                ingredientInserts.push(db.executeOne(insertIngredient).then(function () { },
+                                    function (err) { throw (err); }));
+                            }
+
+                            allOrNone(ingredientInserts).then(function (data) {
+                                db.commit().then(function () {
+                                    response.send();
+                                }, function (err) {
+                                    db.rollback();
+
+                                    errorHandler(err, response);
+                                });
+                            }, function (err) {
+                                db.rollback();
+
+                                errorHandler(err, response);
+                            });
+                        }, function(err) {
+                            db.rollback();
+
+                            errorHandler(err, response);
+                        });
+                    }, function(err) {
+                        db.rollback();
+
+                        errorHandler(err, response);
+                    });
+                }, function(err) {
+                    db.rollback();
+
+                    errorHandler(err, response);
+                });
             });
         });
 

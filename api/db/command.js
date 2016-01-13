@@ -1,75 +1,75 @@
-//A convenience module for SQL statements.
+//A convenience module for SQL statements also the reason ORMs were invented.
 
 'use strict';
 
-var queries = {},
+var command = {},
     selectRecipe = 'SELECT * FROM recipes.recipe',
     selectRecipeAndIngredients = 'SELECT r."recipeId", r."userId", r.name, r.volume, r.units, i."recipeIngredientId", i.name AS "name", i.type, i.volume AS "ingredientVolume", i.units AS "ingredientUnits" FROM recipes.recipe r LEFT OUTER JOIN recipes.recipe_ingredient i ON r."recipeId" = i."recipeId"';
 
-queries.selectUserById = function(userId) {
+command.selectUserById = function(userId) {
     return 'SELECT id, username, firstname, lastname, password, email FROM users.users WHERE id = ' + userId + ';';
 };
 
-queries.createUser = function(user) {
+command.createUser = function(user) {
     return 'INSERT INTO users.users(username,firstname,lastname,email,password) VALUES (\'' + user.userName + '\',\''
      + user.firstName + '\',\'' + user.lastName + '\',\'' + user.email + '\',\'' + user.password + '\')';
 };
 
-queries.selectUserByUsername = function(username) {
+command.selectUserByUsername = function(username) {
 	return 'SELECT id, username, firstname, lastname, password, email FROM users.users where username = \'' + username + '\';';
 };
 
-queries.selectRecipesByUserId = function(userId) {
+command.selectRecipesByUserId = function(userId) {
     return selectRecipe + ' WHERE "userId" = ' + userId + ';';
 };
 
-queries.selectRecipeById = function(recipeId) {
+command.selectRecipeById = function(recipeId) {
     return selectRecipe + ' WHERE "recipeId" = ' + recipeId + ';';
 };
 
-queries.selectRecipeIngredientsByRecipeId = function(recipeId) {
+command.selectRecipeIngredientsByRecipeId = function(recipeId) {
     return 'SELECT * FROM recipes.recipe_ingredient WHERE "recipeId" = ' + recipeId + ';';
 };
 
 //Alright, this is getting out of control.
-queries.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
+command.selectRecipeByUserIdAndRecipeId = function(userId, recipeId) {
     return selectRecipe + ' WHERE "userId" = ' + userId + ' AND "recipeId" = ' + recipeId + ';';
 };
 
-queries.insertRecipe = function(recipe) {
+command.insertRecipe = function(recipe) {
     return 'INSERT INTO recipes.recipe ("userId", name, volume, units) VALUES (' +
         recipe.userId + ', \'' + recipe.name + '\', ' + valueOrDbNull(recipe.volume, false) + ', ' +
         valueOrDbNull(recipe.units, true) + ') RETURNING "recipeId";';
 };
 
-queries.updateRecipe = function(recipe) {
+command.updateRecipe = function(recipe) {
     return 'UPDATE recipes.recipe SET name = \'' + recipe.name + '\', volume = ' +
         valueOrDbNull(recipe.volume, false) + ', units = ' + valueOrDbNull(recipe.units, true) +
         ' WHERE "recipeId" = ' + recipe.recipeId + ';';
 };
 
-queries.insertRecipeIngredient = function(recipeIngredient, recipeId) {
+command.insertRecipeIngredient = function(recipeIngredient, recipeId) {
     return 'INSERT INTO recipes.recipe_ingredient ("recipeId", name, type, volume, units) VALUES (' +
         (recipeId != null ? recipeId : recipeIngredient.recipeId) + ', \'' + recipeIngredient.name + '\', \'' + recipeIngredient.type + '\', ' +
         valueOrDbNull(recipeIngredient.volume, false) + ', ' + valueOrDbNull(recipeIngredient.units, true) + ') ' +
         'RETURNING "recipeIngredientId";';
 };
 
-queries.updateRecipeIngredient = function(recipeIngredient) {
+command.updateRecipeIngredient = function(recipeIngredient) {
     return 'UPDATE recipes.recipe_ingredient SET "recipeId" = ' + recipeIngredient.recipeId + ', name = \'' +
         recipeIngredient.name + '\', volume = ' + valueOrDbNull(recipeIngredient.volume, false) + ', units = '
         + valueOrDbNull(recipeIngredient.units, true) + ' WHERE "recipeIngredientId" = ' + recipeIngredient.recipeIngredientId + ';';
 };
 
-queries.deleteRecipe = function(recipeId) {
+command.deleteRecipe = function(recipeId) {
     return 'DELETE FROM recipes.recipe WHERE "recipeId" = ' + recipeId + ';';
 };
 
-queries.deleteRecipeIngredients = function(recipeId) {
+command.deleteRecipeIngredients = function(recipeId) {
     return 'DELETE FROM recipes.recipe_ingredient WHERE "recipeId" = ' + recipeId + ';';
 };
 
-queries.selectDefinitions = function(definition) {
+command.selectDefinitions = function(definition) {
     return 'SELECT * FROM definitions.' + definition + ';';
 };
 
@@ -77,12 +77,12 @@ queries.selectDefinitions = function(definition) {
 // SELECT TIMESTAMP WITHOUT TIME ZONE 'epoch' + 1440037552357 * INTERVAL '1 millisecond';
 // select CAST(NOW() at time zone 'UTC' as timestamp);
 
-queries.createLog = function(timestamp,level,url,userId,message) {
+command.createLog = function(timestamp,level,url,userId,message) {
     return 'INSERT INTO logs.logs(utcdate,level,url,userid,message) SELECT TIMESTAMP WITHOUT TIME ZONE \'epoch\' + ' + timestamp + ' * INTERVAL \'1 millisecond\''
     + ',\'' + level + '\',\'' + url + '\',' + userId + ',\'' + message + '\'';
 };
 
-queries.getAllLogs = function() {
+command.getAllLogs = function() {
     return 'SELECT * FROM logs.logs';
 };
 
@@ -91,4 +91,4 @@ function valueOrDbNull(value, isString) {
         isString ? '\'' + value + '\'' : value;
 }
 
-module.exports = queries;
+module.exports = command;

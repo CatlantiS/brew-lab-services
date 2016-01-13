@@ -10,8 +10,9 @@ var session = require('express-session');
 var app = express();
 
 var oauth2 = require('./oauth/config.js')();
-var db = require('./routes/db')(oauth2);
+var api = require('./routes/api')(oauth2);
 var auth = require('./routes/auth')(oauth2);
+var logging = require('./routes/logging')(oauth2);
 app.set('oauth2', oauth2);
 
 // view engine setup
@@ -50,7 +51,8 @@ app.use(function(req, res, next) {
 });
 
 app.use('/auth', auth);
-app.use('/api', db);
+app.use('/api', api);
+app.use('/logging', logging);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

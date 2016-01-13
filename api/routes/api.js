@@ -2,46 +2,21 @@ module.exports = function(oauth2) {
     //Web
     var express = require('express');
     var router = express.Router();
-
     //DB
     var dbConfig = require('../configuration/dbConfig.js');
     var pgConnection = require('../core/pgConnection');
     var database = pgConnection(dbConfig.connectionString);
-    var queries = require('../helpers/queries');
-
+    var command = require('../db/command');
+    //Auth
     var bcrypt = require('bcrypt');
-
+    //Promise
     var promise = require('node-promise');
     var all = promise.all;
     var allOrNone = promise.allOrNone;
 
-    //Todo: tighten all these up with oauth2.middleware.bearer once we're done with initial dev.
+    //All api routes secured with oauth.
+    router.use(oauth2.middleware.bearer);
 
-    //commenting this out until we can figure out how to add headers to ajaxappender
-    router.post('/v1/logs/', oauth2.middleware.bearer, function(request, response) {
-        var payload = JSON.parse(request.body.data)[0];
-        var sql = queries.createLog(payload.timestamp, payload.level, payload.url, request.oauth2.accessToken.userId, payload.message);
-
-        database.connect(function(db) {
-            db.insert(sql).then(function(data) {
-                response.status(200).send('OK');
-            });
-        }, function(err) {
-            response.status(500).send('ERROR' + err);
-            throw err;
-        });
-    });
-
-    router.get('/v1/logs/all', oauth2.middleware.bearer, function(request, response) {
-        database.connect(function(db) {
-            var sql = queries.getAllLogs();
-            db.find(sql).then(function(data) {
-                response.status(200).send(data);
-            }, function(err) { throw err; });
-        });
-    });
-
-    //Todo: add oauth bearer
     //Some pretty redundant data in here, can reduce the payload.
     router.get('/v1/users/roles/', function(request, response) {
         database.connect(function(db) {
@@ -65,7 +40,7 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/users/all', oauth2.middleware.bearer, function(request, response) {
+    router.get('/v1/users/all', function(request, response) {
         database.connect(function(db) {
             var select = "SELECT * from users.users";
 
@@ -75,11 +50,11 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/users/current', oauth2.middleware.bearer, function(request, response) {
+    router.get('/v1/users/current', function(request, response) {
         var userId = request.oauth2.accessToken.userId;
 
         database.connect(function(db) {
-            var select = queries.selectUserById(userId);
+            var select = command.selectUserById(userId);
 
             db.findOne(select).then(function(data) {
                 response.send(data);
@@ -87,13 +62,13 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.post('/v1/users/create', oauth2.middleware.bearer, function(request, response) {
+    router.post('/v1/users/create', function(request, response) {
         var user = request.body;
         database.connect(function(db) {
             bcrypt.genSalt(10, function(err, salt) {
                 bcrypt.hash(user.password, salt, function(err, hash) {
                     user.password = hash;
-                    var sql = queries.createUser(user);
+                    var sql = command.createUser(user);
                     db.insert(sql).then(function(data) {
                         response.status(200).send('ok');
                     }, function(err) { throw err; });
@@ -106,7 +81,7 @@ module.exports = function(oauth2) {
         var userId = request.params.userId;
 
         database.connect(function(db) {
-            var select = queries.selectUserById(userId);
+            var select = command.selectUserById(userId);
 
             db.findOne(select).then(function(data) {
                 response.send(data);
@@ -118,7 +93,7 @@ module.exports = function(oauth2) {
         var userName = request.params.userName;
 
         database.connect(function (db) {
-            var select = queries.selectUserByUsername(userName);
+            var select = command.selectUserByUsername(userName);
 
             db.findOne(select).then(function(data) {
                 response.send(data);
@@ -126,11 +101,11 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/users/:userId/recipes/', oauth2.middleware.bearer, function(request, response) {
+    router.get('/v1/users/:userId/recipes/', function(request, response) {
         var userId = request.params.userId;
 
         database.connect(function(db) {
-            var select = queries.selectRecipesByUserId(userId);
+            var select = command.selectRecipesByUserId(userId);
 
             db.find(select).then(function(data) {
                 response.send(data);
@@ -138,11 +113,11 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/currentUser/recipes/', oauth2.middleware.bearer, function(request,response) {
+    router.get('/v1/currentUser/recipes/', function(request,response) {
         var userId = request.oauth2.accessToken.userId;
 
         database.connect(function(db) {
-            var select = queries.selectRecipesByUserId(userId);
+            var select = command.selectRecipesByUserId(userId);
 
             db.find(select).then(function(data) {
                 response.send(data);
@@ -150,12 +125,12 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.get('/v1/currentUser/recipes/:recipeId', oauth2.middleware.bearer, function(request,response) {
+    router.get('/v1/currentUser/recipes/:recipeId', function(request,response) {
         var recipeId = request.params.recipeId,
             userId = request.oauth2.accessToken.userId;
 
         database.connect(function(db) {
-            var select = queries.selectRecipeByUserIdAndRecipeId(userId, recipeId);
+            var select = command.selectRecipeByUserIdAndRecipeId(userId, recipeId);
 
             db.find(select).then(function(data) {
                 response.send(data);
@@ -163,7 +138,7 @@ module.exports = function(oauth2) {
         });
     });
 
-    router.post('/v1/recipes/', oauth2.middleware.bearer, function(request, response) {
+    router.post('/v1/recipes/', function(request, response) {
         var recipe = request.body;
         recipe.userId = request.oauth2.accessToken.userId;
 
@@ -171,7 +146,7 @@ module.exports = function(oauth2) {
         try {
             database.connect(function(db) {
                 db.beginTransaction().then(function() {
-                    var insertRecipe = queries.insertRecipe(recipe);
+                    var insertRecipe = command.insertRecipe(recipe);
 
                     db.insert(insertRecipe).then(function(recipeData) {
                         //No ingredients, so just insert recipe and boogey.
@@ -183,17 +158,7 @@ module.exports = function(oauth2) {
                             }, function (err) { throw (err); });
                         }
                         else {
-                            var ingredientInserts = [];
-
-                            for (var i = 0; i < recipe.ingredients.length; i++) {
-                                var ingredient = recipe.ingredients[i],
-                                    insertIngredient = queries.insertRecipeIngredient(ingredient, recipeData.recipeId);
-
-                                ingredientInserts.push(db.insert(insertIngredient).then(function () { },
-                                    function (err) { throw (err); }));
-                            }
-
-                            allOrNone(ingredientInserts).then(function (data) {
+                            insertIngredients(recipe.ingredients, recipeData.recipeId, db, function () {
                                 db.commit().then(function () {
                                     //SUCCESS maybe.  Who knows.
                                     //Can expand this to send back ids for ingredients, but that's probably not necessary.
@@ -222,16 +187,30 @@ module.exports = function(oauth2) {
         }
     });
 
-    router.delete('/v1/recipes/:recipeId', oauth2.middleware.bearer, function(request, response) {
+    //This is just a test...
+    function insertIngredients(ingredients, recipeId, db, onSuccess, onFailure) {
+        var ingredientInserts = [];
+
+        for (var i = 0; i < ingredients.length; i++) {
+            var ingredient = ingredients[i],
+                insertIngredient = command.insertRecipeIngredient(ingredient, recipeId);
+
+            ingredientInserts.push(db.insert(insertIngredient).then(null, function(err) { throw (err); }));
+        }
+
+        allOrNone(ingredientInserts).then(onSuccess, onFailure);
+    }
+
+    router.delete('/v1/recipes/:recipeId', function(request, response) {
         var recipeId = request.params.recipeId;
 
         try {
             database.connect(function(db) {
                 db.beginTransaction().then(function() {
-                    var deleteRecipeIngredients = queries.deleteRecipeIngredients(recipeId);
+                    var deleteRecipeIngredients = command.deleteRecipeIngredients(recipeId);
 
                     db.execute(deleteRecipeIngredients).then(function() {
-                        var deleteRecipe = queries.deleteRecipe(recipeId);
+                        var deleteRecipe = command.deleteRecipe(recipeId);
 
                         db.execute(deleteRecipe).then(function(data) {
                             db.commit().then(function() {
@@ -265,7 +244,7 @@ module.exports = function(oauth2) {
             var recipeId = request.params.recipeId;
 
             database.connect(function(db) {
-                var select = queries.selectRecipeById(recipeId);
+                var select = command.selectRecipeById(recipeId);
 
                 db.findOne(select).then(function(data) {
                     response.send(data);
@@ -277,7 +256,7 @@ module.exports = function(oauth2) {
         .put(function(request, response) {
             var recipeId = request.params.recipeId,
                 recipe = request.body;
-
+;
             //Is this necessary?
             if (recipeId != recipe.recipeId) {
                 errorHandler('Recipe ID in query param does not match recipe ID in body.', response);
@@ -286,19 +265,19 @@ module.exports = function(oauth2) {
             }
 
             database.connect(function(db) {
-                var updateRecipe = queries.updateRecipe(recipe);
+                var updateRecipe = command.updateRecipe(recipe);
 
                 db.beginTransaction().then(function() {
                     db.executeOne(updateRecipe).then(function() {
                         //We just blow away existing ingredients and re-add rather than try to determine which have changed and which haven't.
-                        var deleteIngredients = queries.deleteRecipeIngredients(recipeId);
+                        var deleteIngredients = command.deleteRecipeIngredients(recipeId);
 
                         db.executeOne(deleteIngredients).then(function() {
                             var ingredientInserts = [];
 
                             for (var i = 0; i < recipe.ingredients.length; i++) {
                                 var ingredient = recipe.ingredients[i],
-                                    insertIngredient = queries.insertRecipeIngredient(ingredient, recipeId);
+                                    insertIngredient = command.insertRecipeIngredient(ingredient, recipeId);
 
                                 ingredientInserts.push(db.executeOne(insertIngredient).then(function () { },
                                     function (err) { throw (err); }));
@@ -335,11 +314,11 @@ module.exports = function(oauth2) {
             });
         });
 
-    router.get('/v1/recipeIngredients/:recipeId', oauth2.middleware.bearer, function(request,response) {
+    router.get('/v1/recipeIngredients/:recipeId', function(request,response) {
         var recipeId = request.params.recipeId;
 
         database.connect(function(db) {
-            var select = queries.selectRecipeIngredientsByRecipeId(recipeId);
+            var select = command.selectRecipeIngredientsByRecipeId(recipeId);
 
             db.find(select).then(function(data) {
                 response.send(data);
@@ -351,7 +330,7 @@ module.exports = function(oauth2) {
         var definition = request.params.definition;
 
         database.connect(function(db) {
-            var select = queries.selectDefinitions(definition);
+            var select = command.selectDefinitions(definition);
 
             db.find(select).then(function(data) {
                 response.send(data);
@@ -362,9 +341,9 @@ module.exports = function(oauth2) {
     //Returning all definitions in a single object to minimize calls.
     router.get('/v1/brewMaster/definitions/', function(request, response) {
         database.connect(function(db) {
-            var ingredient = db.find(queries.selectDefinitions('ingredient'))
+            var ingredient = db.find(command.selectDefinitions('ingredient'))
                     .then(function(data) { return { name: 'ingredient', data: data }; }),
-                units = db.find(queries.selectDefinitions('units'))
+                units = db.find(command.selectDefinitions('units'))
                     .then(function(data) { return { name: 'units', data: data }; });
 
             all(ingredient, units).then(function(data) {

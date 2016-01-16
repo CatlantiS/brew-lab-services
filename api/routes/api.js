@@ -7,6 +7,7 @@ module.exports = function(oauth2) {
     var pgConnection = require('../core/pgConnection');
     var database = pgConnection(dbConfig.connectionString);
     var command = require('../db/command');
+    var Recipe = require('../models/recipe');
     //Auth
     var bcrypt = require('bcrypt');
     //Promise
@@ -142,39 +143,13 @@ module.exports = function(oauth2) {
         var recipe = request.body;
         recipe.userId = request.oauth2.accessToken.userId;
 
-        //The nesting in pretty awful.
         try {
             database.connect(function(db) {
                 db.beginTransaction().then(function() {
-                    var insertRecipe = command.insertRecipe(recipe);
-
-                    db.insert(insertRecipe).then(function(recipeData) {
-                        //No ingredients, so just insert recipe and boogey.
-                        if (!recipe.ingredients || recipe.ingredients.length == 0) {
-                            db.commit().then(function () {
-                                //SUCCESS maybe.  Who knows.
-                                //Can expand this to send back ids for ingredients, but that's probably not necessary.
-                                response.send(recipeData);
-                            }, function (err) { throw (err); });
-                        }
-                        else {
-                            insertIngredients(recipe.ingredients, recipeData.recipeId, db, function () {
-                                db.commit().then(function () {
-                                    //SUCCESS maybe.  Who knows.
-                                    //Can expand this to send back ids for ingredients, but that's probably not necessary.
-                                    response.send(recipeData);
-                                }, function (err) {
-                                    db.rollback();
-
-                                    errorHandler(err, response);
-                                });
-                            }, function (err) {
-                                db.rollback();
-
-                                errorHandler(err, response);
-                            });
-                        }
-                    }, function(err) {
+                    (new Recipe(recipe, db)).save().then(function (data) {
+                        db.commit().then(function () { response.send(data); },
+                            function (err) { throw (err); });
+                    }, function (err) {
                         db.rollback();
 
                         errorHandler(err, response);
@@ -186,20 +161,6 @@ module.exports = function(oauth2) {
             errorHandler(exception, response);
         }
     });
-
-    //This is just a test...
-    function insertIngredients(ingredients, recipeId, db, onSuccess, onFailure) {
-        var ingredientInserts = [];
-
-        for (var i = 0; i < ingredients.length; i++) {
-            var ingredient = ingredients[i],
-                insertIngredient = command.insertRecipeIngredient(ingredient, recipeId);
-
-            ingredientInserts.push(db.insert(insertIngredient).then(null, function(err) { throw (err); }));
-        }
-
-        allOrNone(ingredientInserts).then(onSuccess, onFailure);
-    }
 
     router.delete('/v1/recipes/:recipeId', function(request, response) {
         var recipeId = request.params.recipeId;

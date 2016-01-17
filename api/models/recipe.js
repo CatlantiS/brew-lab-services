@@ -41,14 +41,19 @@ Recipe.prototype.save = function() {
 
             for (var j = 0; j < self.tags.length; j++)
                 (function saveTag(tag) {
+                    var d = defer();
+
                     Tag.findOne(tag.name, store).then(function(data) {
                         if (data == null) {
-                            tagSaves.push(new Tag(tag, store).save(function(tagData) {
-                                return (new RecipeTag(null, store).save(recipeData.recipeId, tagData.tagId)); }, _throw));
+                            new Tag(tag, store).save().then(function(tagData) {
+                                //This is getting hideous.
+                                d.resolve(new RecipeTag(null, store).save(recipeData.recipeId, tagData.tagId).then(null, _throw)); }, _throw);
                         }
                         else
-                            tagSaves.push(new RecipeTag(null, store).save(recipeData.recipeId, data.tagId).then(null, _throw));
+                            d.resolve(new RecipeTag(null, store).save(recipeData.recipeId, data.tagId).then(null, _throw));
                     });
+
+                    tagSaves.push(d.promise);
                 })(self.tags[j]);
 
             promises.push(allOrNone(tagSaves));

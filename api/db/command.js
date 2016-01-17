@@ -69,6 +69,22 @@ command.deleteRecipeIngredients = function(recipeId) {
     return 'DELETE FROM recipes.recipe_ingredient WHERE "recipeId" = ' + recipeId + ';';
 };
 
+command.selectTagByName = function(name) {
+    return 'SELECT * FROM recipes.tag WHERE name = \'' + name + '\';';
+};
+
+command.selectTagsByName = function(name) {
+    return 'SELECT * FROM recipes.tag WHERE name LIKE \'%' + name + '%\';';
+};
+
+command.insertTag = function(tag) {
+    return 'INSERT INTO recipes.tag (name) VALUES (\'' + tag.name + '\') RETURNING "tagId";';
+};
+
+command.insertRecipeTag = function(recipeId, tagId) {
+    return 'INSERT INTO recipes.recipe_tag (recipeId, tagId) VALUES (' + recipeId + ', ' + tagId + ') RETURNING "recipeTagId";';
+};
+
 command.selectDefinitions = function(definition) {
     return 'SELECT * FROM definitions.' + definition + ';';
 };

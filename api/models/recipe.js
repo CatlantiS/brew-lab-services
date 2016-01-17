@@ -18,10 +18,10 @@ function Recipe(recipe, db) {
 Recipe.prototype = Object.create(base);
 
 Recipe.prototype.save = function() {
-    var self = this, store = self._store, insertRecipe = command.insertRecipe(this);
+    var self = this, store = self._store, deferred = defer(), insertRecipe = command.insertRecipe(this);
 
-    return store.insert(insertRecipe).then(function(recipeData) {
-        var deferred = defer(), promises = [];
+    store.insert(insertRecipe).then(function(recipeData) {
+        var promises = [];
 
         if (self.ingredients && self.ingredients.length > 0) {
             var ingredientSaves = [];
@@ -56,9 +56,9 @@ Recipe.prototype.save = function() {
 
         allOrNone(promises).then(function() { deferred.resolve(recipeData); },
             function(err) { deferred.reject(err); });
-
-        return deferred.promise;
     });
+
+    return deferred.promise;
 };
 
 function _throw(err) {

@@ -146,9 +146,11 @@ module.exports = function(oauth2) {
         try {
             database.connect(function(db) {
                 db.beginTransaction().then(function() {
-                    (new Recipe(recipe, db)).save().then(function (data) {
-                        db.commit().then(function () { response.send(data); },
-                            function (err) { throw (err); });
+                    (new Recipe(recipe, db)).save().then(function(data) {
+                        db.commit().then(function () {
+                            response.send(data);
+                        },
+                        function (err) { throw (err); });
                     }, function (err) {
                         db.rollback();
 

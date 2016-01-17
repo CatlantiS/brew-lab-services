@@ -82,7 +82,7 @@ command.insertTag = function(tag) {
 };
 
 command.insertRecipeTag = function(recipeId, tagId) {
-    return 'INSERT INTO recipes.recipe_tag (recipeId, tagId) VALUES (' + recipeId + ', ' + tagId + ') RETURNING "recipeTagId";';
+    return 'INSERT INTO recipes.recipe_tag ("recipeId", "tagId") VALUES (' + recipeId + ', ' + tagId + ') RETURNING "recipeTagId";';
 };
 
 command.selectDefinitions = function(definition) {

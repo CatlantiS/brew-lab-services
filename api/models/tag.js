@@ -20,10 +20,10 @@ Tag.prototype.save = function() {
 };
 
 //Static find methods.
-Tag.find = function(name) {
+Tag.find = function(name, store) {
     var self = this, deferred = defer(), selectTags = command.selectTagsByName(name);
 
-    this._store.find(selectTags).then(function(data) {
+    store.find(selectTags).then(function(data) {
         var tags;
 
         //Lazy check if array.
@@ -36,12 +36,14 @@ Tag.find = function(name) {
     return deferred.promise;
 };
 
-Tag.findOne = function(name) {
+Tag.findOne = function(name, store) {
     var self = this, deferred = defer(), selectTag = command.selectTagByName(name);
 
-    this._store.find(selectTag).then(function(tag) {
+    store.find(selectTag).then(function(tags) {
+        var tag = tags[0];
+
         deferred.resolve(tag != null ? new Tag(tag, self._store) : null);
-    });
+    }, function(err) { throw err; });
 
     return deferred.promise;
 };

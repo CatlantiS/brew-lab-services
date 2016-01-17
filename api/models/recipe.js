@@ -18,17 +18,18 @@ function Recipe(recipe, db) {
 Recipe.prototype = Object.create(base);
 
 Recipe.prototype.save = function() {
-    var self = this, insertRecipe = command.insertRecipe(this);
+    var self = this, store = self._store, insertRecipe = command.insertRecipe(this);
 
-    return this._store.insert(insertRecipe).then(function(recipeData) {
+    return store.insert(insertRecipe).then(function(recipeData) {
         var deferred = defer(), promises = [];
 
         if (self.ingredients && self.ingredients.length > 0) {
             var ingredientSaves = [];
 
             for (var i = 0; i < self.ingredients.length; i++) {
-                var ingredient = new Ingredient(self.ingredients[i], self._store);
+                var ingredient = new Ingredient(self.ingredients[i], store);
 
+                //Do we even need to throw an error here or will it get handled as expected by allOrNone()?
                 ingredientSaves.push(ingredient.save(recipeData.recipeId).then(null, _throw));
             }
 
@@ -38,19 +39,17 @@ Recipe.prototype.save = function() {
         if (self.tags && self.tags.length > 0) {
             var tagSaves = [];
 
-            for (var j = 0; j < self.tags.length; j++) {
-                var tag = self.tags[j];
-
-                Tag.findOne(tag.name).then(function(data) {
-                    if (data == null) {
-                        tagSaves.push(new Tag(tag, self._store).save(function(tagData) {
-                            return (new RecipeTag(null, self._store).save(recipeData.recipeId, tagData.tagId));
-                        }, _throw));
-                    }
-                    else
-                        tagSaves.push(new RecipeTag(null, self._store).save(recipeData.recipeId, data.tagId).then(null, _throw));
-                });
-            }
+            for (var j = 0; j < self.tags.length; j++)
+                (function saveTag(tag) {
+                    Tag.findOne(tag.name, store).then(function(data) {
+                        if (data == null) {
+                            tagSaves.push(new Tag(tag, store).save(function(tagData) {
+                                return (new RecipeTag(null, store).save(recipeData.recipeId, tagData.tagId)); }, _throw));
+                        }
+                        else
+                            tagSaves.push(new RecipeTag(null, store).save(recipeData.recipeId, data.tagId).then(null, _throw));
+                    });
+                })(self.tags[j]);
 
             promises.push(allOrNone(tagSaves));
         }
@@ -62,6 +61,8 @@ Recipe.prototype.save = function() {
     });
 };
 
-function _throw(err) { throw err; }
+function _throw(err) {
+    throw err;
+}
 
 module.exports = Recipe;

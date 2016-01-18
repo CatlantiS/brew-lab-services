@@ -304,12 +304,14 @@ module.exports = function(oauth2) {
     //Returning all definitions in a single object to minimize calls.
     router.get('/v1/brewMaster/definitions/', function(request, response) {
         database.connect(function(db) {
-            var ingredient = db.find(command.selectDefinitions('ingredient'))
+            var style = db.find(command.selectDefinitions('beer_style'))
+                    .then(function(data) { return { name: 'style', data: data }; }),
+                ingredient = db.find(command.selectDefinitions('ingredient'))
                     .then(function(data) { return { name: 'ingredient', data: data }; }),
                 units = db.find(command.selectDefinitions('units'))
                     .then(function(data) { return { name: 'units', data: data }; });
 
-            all(ingredient, units).then(function(data) {
+            all(style, ingredient, units).then(function(data) {
                 var merged = {};
 
                 for (var i = 0; i < data.length; i++) {
@@ -326,6 +328,8 @@ module.exports = function(oauth2) {
                             definitions[type] = definitions[type] || [];
                             definitions[type].push(definition);
                         }
+                        else
+                            (definitions.all = definitions.all || []).push(definition);
                     }
                 }
 

@@ -24,21 +24,15 @@ Recipe.prototype.save = function() {
         var promises = [];
 
         if (self.ingredients && self.ingredients.length > 0) {
-            var ingredientSaves = [];
-
             for (var i = 0; i < self.ingredients.length; i++) {
                 var ingredient = new Ingredient(self.ingredients[i], store);
 
                 //Do we even need to throw an error here or will it get handled as expected by allOrNone()?
-                ingredientSaves.push(ingredient.save(recipeData.recipeId).then(null, _throw));
+                promises.push(ingredient.save(recipeData.recipeId).then(null, _throw));
             }
-
-            promises.push(allOrNone(ingredientSaves));
         }
 
         if (self.tags && self.tags.length > 0) {
-            var tagSaves = [];
-
             for (var j = 0; j < self.tags.length; j++)
                 (function saveTag(tag) {
                     var d = defer();
@@ -53,10 +47,8 @@ Recipe.prototype.save = function() {
                             d.resolve(new RecipeTag(null, store).save(recipeData.recipeId, data.tagId).then(null, _throw));
                     });
 
-                    tagSaves.push(d.promise);
+                    promises.push(d.promise);
                 })(self.tags[j]);
-
-            promises.push(allOrNone(tagSaves));
         }
 
         allOrNone(promises).then(function() { deferred.resolve(recipeData); },

@@ -204,7 +204,8 @@ CREATE TABLE recipe (
     "userId" integer NOT NULL,
     name text NOT NULL,
     volume numeric,
-    units text
+    units text,
+    style text
 );
 
 

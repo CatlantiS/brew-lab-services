@@ -21,7 +21,7 @@ RAISE NOTICE 'Inserted % rows into users.clients.',row_count;
 row_count := 0;
 IF NOT EXISTS (SELECT 1 FROM definitions.units where name='Gallons') THEN
 	INSERT INTO definitions.units(name,type)
-	VALUES('Gallons','');
+	VALUES('Gallons','Volume');
 	GET DIAGNOSTICS row_count = ROW_COUNT;
 END IF;
 RAISE NOTICE 'Inserted % rows into definitions.units.',row_count;
@@ -29,7 +29,7 @@ RAISE NOTICE 'Inserted % rows into definitions.units.',row_count;
 row_count := 0;
 IF NOT EXISTS (SELECT 1 FROM definitions.units where name='Liters') THEN
 	INSERT INTO definitions.units(name,type)
-	VALUES('Liters','');
+	VALUES('Liters','Volume');
 	GET DIAGNOSTICS row_count = ROW_COUNT;
 END IF;
 RAISE NOTICE 'Inserted % rows into Definitions.Units.',row_count;
